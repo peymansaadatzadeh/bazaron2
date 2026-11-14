@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation' // ✅ اضافه شدن usePathname
+import { useRouter, usePathname } from 'next/navigation'
 
-export default function Navbar() {
+// ✅ کامپوننت داخلی که از هوک‌های کلاینت استفاده می‌کند
+function NavbarContent() {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
-  const pathname = usePathname() // ✅ گرفتن مسیر فعلی
+  const pathname = usePathname() // این هوک نیاز به Suspense دارد
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -31,7 +32,7 @@ export default function Navbar() {
     router.push('/')
   }
 
-  // ✅ اگر در صفحات داشبورد، ادمین، پنل فروشنده یا پیک هستیم، نوار بالا را نشان نده
+  // مخفی کردن نوار بالای سایت در پنل‌ها
   if (
     pathname.startsWith('/dashboard') || 
     pathname.startsWith('/admin') || 
@@ -71,5 +72,14 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+  )
+}
+
+// ✅ خروجی نهایی که کامپوننت را داخل Suspense می‌پیچد تا Vercel ارور ندهد
+export default function Navbar() {
+  return (
+    <Suspense fallback={null}>
+      <NavbarContent />
+    </Suspense>
   )
 }
