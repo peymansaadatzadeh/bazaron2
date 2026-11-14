@@ -29,18 +29,18 @@ export default function UserSidebar({
 
   return (
     <aside 
-      className={`fixed md:sticky top-0 right-0 z-50 w-72 h-screen bg-white border-l border-gray-200 flex flex-col shadow-2xl md:shadow-sm transform transition-transform duration-300 ease-in-out md:translate-x-0 ${
+      className={`fixed md:sticky top-0 right-0 z-50 w-72 h-[100dvh] bg-white border-l border-gray-200 flex flex-col shadow-2xl md:shadow-sm transform transition-transform duration-300 ease-in-out md:translate-x-0 ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`} 
       dir="rtl"
     >
-      <div className="md:hidden flex justify-end p-4 pb-0">
+      <div className="md:hidden flex justify-end p-4 pb-0 shrink-0">
         <button onClick={onClose} className="p-2 bg-gray-100 rounded-full text-gray-500 hover:text-red-500">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>
 
-      <div className="relative p-8 border-b border-gray-100 flex flex-col items-center justify-center text-center bg-gradient-to-b from-indigo-50/50 to-white overflow-hidden">
+      <div className="relative p-8 border-b border-gray-100 flex flex-col items-center justify-center text-center bg-gradient-to-b from-indigo-50/50 to-white overflow-hidden shrink-0">
         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-indigo-100 to-blue-50 opacity-50"></div>
         
         <div className="relative z-10 w-20 h-20 bg-gradient-to-tr from-indigo-600 to-blue-500 text-white rounded-full flex items-center justify-center font-black text-3xl shadow-lg border-4 border-white mb-3">
@@ -60,6 +60,7 @@ export default function UserSidebar({
             <Link 
               key={item.name} 
               href={item.href}
+              onClick={onClose}
               className={`group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm ${
                 isActive 
                   ? 'bg-indigo-50 text-indigo-700 border-r-4 border-indigo-600 shadow-sm' 
@@ -84,6 +85,7 @@ export default function UserSidebar({
           <div className="pt-3 mt-3 border-t border-gray-100">
             <Link 
               href="/admin" 
+              onClick={onClose}
               className="group flex items-center justify-between bg-gradient-to-r from-red-50 to-orange-50 text-red-700 px-4 py-3 rounded-2xl hover:from-red-100 hover:to-orange-100 transition-all duration-300 font-bold text-sm border border-red-100"
             >
               <div className="flex items-center gap-3">
@@ -98,15 +100,16 @@ export default function UserSidebar({
         )}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 bg-gray-50/80 rounded-t-3xl">
-        <p className="text-xs font-bold text-gray-500 mb-3 px-2 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-          فروشگاه‌های من
-        </p>
+      <div className="p-4 border-t border-gray-100 space-y-2 shrink-0">
+        <Link href="/" onClick={onClose} className="w-full flex items-center justify-center gap-2 bg-gray-50 text-gray-600 px-4 py-3 rounded-2xl font-bold hover:bg-gray-100 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+          بازگشت به سایت
+        </Link>
         
         {store ? (
           <Link 
             href="/dashboard/store-panel" 
+            onClick={onClose}
             className="flex items-center justify-between bg-white p-3.5 rounded-2xl border-2 border-green-100 hover:border-green-400 transition-colors shadow-sm group"
           >
             <div className="flex items-center gap-3">
@@ -120,6 +123,7 @@ export default function UserSidebar({
         ) : (
           <Link 
             href="/dashboard/create-store" 
+            onClick={onClose}
             className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-red-500 to-orange-500 text-white py-3.5 rounded-2xl hover:shadow-lg hover:shadow-red-500/30 transition-all transform hover:-translate-y-0.5 font-bold text-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
