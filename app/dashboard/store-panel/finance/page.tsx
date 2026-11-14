@@ -4,6 +4,28 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
+// ✅ توابع کمکی برای فرمت اعداد با کاما
+const formatPrice = (value: string | number) => {
+  if (value === undefined || value === null) return '';
+  const str = String(value);
+  const englishStr = str
+    .replace(/[۰-۹]/g, (w) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(w)))
+    .replace(/,/g, '')
+    .replace(/[^0-9]/g, '');
+  if (!englishStr) return '';
+  return Number(englishStr).toLocaleString('en-US');
+};
+
+const parsePrice = (value: string) => {
+  const englishStr = value
+    .replace(/[۰-۹]/g, (w) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(w)))
+    .replace(/,/g, '')
+    .replace(/[^0-9]/g, '');
+  return Number(englishStr) || 0;
+};
+
 export default function SellerFinancePage() {
   const [wallet, setWallet] = useState<any>(null)
   const [store, setStore] = useState<any>(null)
@@ -17,7 +39,6 @@ export default function SellerFinancePage() {
   const [message, setMessage] = useState({ type: '', text: '' })
   const router = useRouter()
 
-  // ✅ رفرنس برای اسکرول خودکار
   const messageRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -60,7 +81,10 @@ export default function SellerFinancePage() {
     e.preventDefault()
     if (!store || !wallet) return
     if (!store.sheba_number) { setMessage({ type: 'error', text: 'ابتدا شبا را ثبت کنید.' }); return }
-    const amount = Number(withdrawAmount)
+    
+    // ✅ تبدیل کاما به عدد خالص
+    const amount = parsePrice(withdrawAmount)
+    
     if (amount < 50000) { setMessage({ type: 'error', text: 'حداقل تسویه ۵۰,۰۰۰ تومان است.' }); return }
     if (amount > wallet.balance) { setMessage({ type: 'error', text: 'بیشتر از موجودی است.' }); return }
     setIsSubmitting(true)
@@ -70,14 +94,13 @@ export default function SellerFinancePage() {
     setIsSubmitting(false)
   }
 
-  if (loading) return <div className="text-center py-20">در حال بارگذاری...</div>
+  if (loading) return <div className="text-center py-20 text-gray-600">در حال بارگذاری...</div>
   const currentBalance = wallet ? wallet.balance : 0
 
   return (
     <div className="p-4 sm:p-8 space-y-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">مدیریت مالی و کیف پول</h1>
       
-      {/* ✅ اتصال رفرنس به کادر پیام */}
       {message.text && (
         <div ref={messageRef} className={`p-4 rounded-xl text-sm font-bold mb-6 shadow-sm border ${message.type === 'error' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-green-50 text-green-600 border-green-100'}`}>
           {message.text}
@@ -94,7 +117,7 @@ export default function SellerFinancePage() {
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
             <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">ثبت شبا</h3>
             <form onSubmit={handleSaveSheba} className="space-y-4">
-              <input type="text" value={sheba} onChange={(e) => setSheba(e.target.value)} disabled={store?.sheba_number} required className="w-full bg-gray-50 px-4 py-3 border rounded-xl text-left font-mono" dir="ltr" placeholder="IR..." />
+              <input type="text" value={sheba} onChange={(e) => setSheba(e.target.value)} disabled={store?.sheba_number} required className="w-full bg-gray-50 px-4 py-3 border border-gray-300 rounded-xl text-left font-mono text-gray-800" dir="ltr" placeholder="IR..." />
               {!store?.sheba_number && <button type="submit" disabled={isSavingSheba} className="w-full bg-gray-800 text-white py-3 rounded-xl font-bold">ثبت شبا</button>}
             </form>
           </div>
@@ -102,8 +125,17 @@ export default function SellerFinancePage() {
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
             <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">درخواست تسویه</h3>
             <form onSubmit={handleWithdrawRequest} className="space-y-4">
-              <input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} min="50000" max={currentBalance} required className="w-full bg-gray-50 px-4 py-3 border rounded-xl text-left font-bold text-lg" dir="ltr" placeholder="مبلغ" />
-              <button type="submit" disabled={isSubmitting || currentBalance < 50000 || !store?.sheba_number} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold disabled:bg-gray-300">ثبت درخواست</button>
+              <input 
+                type="text" 
+                inputMode="numeric"
+                value={withdrawAmount} 
+                onChange={(e) => setWithdrawAmount(formatPrice(e.target.value))} 
+                required 
+                className="w-full bg-gray-50 px-4 py-3 border border-gray-300 rounded-xl text-left font-bold text-lg text-gray-800" 
+                dir="ltr" 
+                placeholder="مبلغ" 
+              />
+              <button type="submit" disabled={isSubmitting || currentBalance < 50000 || !store?.sheba_number} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold disabled:bg-gray-300 disabled:cursor-not-allowed">ثبت درخواست</button>
             </form>
           </div>
         </div>
@@ -111,11 +143,11 @@ export default function SellerFinancePage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-5 border-b bg-gray-50"><h3 className="font-bold text-gray-800">تاریخچه تراکنش‌ها</h3></div>
-            {transactions.length === 0 ? <div className="p-8 text-center text-gray-500 text-sm">تراکنشی نیست.</div> : (
+            {transactions.length === 0 ? <div className="p-8 text-center text-gray-600 text-sm">تراکنشی نیست.</div> : (
               <div className="divide-y max-h-[400px] overflow-y-auto">
                 {transactions.map((tx) => (
                   <div key={tx.id} className="p-4 flex justify-between items-center">
-                    <div><p className="font-bold text-sm">{tx.description}</p><p className="text-xs text-gray-400">{new Date(tx.created_at).toLocaleDateString('fa-IR')}</p></div>
+                    <div><p className="font-bold text-sm text-gray-800">{tx.description}</p><p className="text-xs text-gray-500">{new Date(tx.created_at).toLocaleDateString('fa-IR')}</p></div>
                     <span className={`font-black ${tx.type === 'sale' ? 'text-green-600' : 'text-red-600'}`}>{tx.type === 'sale' ? '+' : '-'}{tx.amount.toLocaleString()}</span>
                   </div>
                 ))}
@@ -125,11 +157,11 @@ export default function SellerFinancePage() {
 
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-5 border-b bg-gray-50"><h3 className="font-bold text-gray-800">درخواست‌های تسویه</h3></div>
-            {withdrawals.length === 0 ? <div className="p-8 text-center text-gray-500 text-sm">درخواستی نیست.</div> : (
+            {withdrawals.length === 0 ? <div className="p-8 text-center text-gray-600 text-sm">درخواستی نیست.</div> : (
               <div className="divide-y max-h-[300px] overflow-y-auto">
                 {withdrawals.map((wd) => (
                   <div key={wd.id} className="p-4 flex justify-between items-center">
-                    <div><p className="font-bold">{wd.amount.toLocaleString()} تومان</p><p className="text-xs text-gray-400">{new Date(wd.created_at).toLocaleDateString('fa-IR')}</p></div>
+                    <div><p className="font-bold text-gray-800">{wd.amount.toLocaleString()} تومان</p><p className="text-xs text-gray-500">{new Date(wd.created_at).toLocaleDateString('fa-IR')}</p></div>
                     <div>
                       {wd.status === 'pending' && <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">در انتظار</span>}
                       {wd.status === 'approved' && <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">تایید شد</span>}
