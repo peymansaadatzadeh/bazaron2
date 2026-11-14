@@ -5,10 +5,20 @@ import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+const calculateCommission = (subtotal: number) => {
+  let commission = 0;
+  if (subtotal <= 2000000) commission = subtotal * 0.05;
+  else if (subtotal <= 4000000) commission = (2000000 * 0.05) + ((subtotal - 2000000) * 0.04);
+  else if (subtotal <= 6000000) commission = (2000000 * 0.05) + (2000000 * 0.04) + ((subtotal - 4000000) * 0.03);
+  else commission = (2000000 * 0.05) + (2000000 * 0.04) + (2000000 * 0.03) + ((subtotal - 6000000) * 0.02);
+  return commission;
+}
+
 export default function CustomerOrdersPage() {
   const [groupedOrders, setGroupedOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedGroup, setSelectedGroup] = useState<any>(null)
+  const [processingItem, setProcessingItem] = useState<string | null>(null)
   
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [courierRating, setCourierRating] = useState(0)
@@ -54,6 +64,12 @@ export default function CustomerOrdersPage() {
       })
 
       setGroupedOrders(Object.values(groups))
+      
+      // به‌روزرسانی مودال باز (اگر باز باشد)
+      if (selectedGroup) {
+        const updatedGroup = Object.values(groups).find((g: any) => g.id === selectedGroup.id)
+        if (updatedGroup) setSelectedGroup(updatedGroup)
+      }
     }
     setLoading(false)
   }
@@ -61,6 +77,53 @@ export default function CustomerOrdersPage() {
   useEffect(() => {
     fetchMyOrders()
   }, [router])
+
+  const handleApprovePrice = async (itemId: string) => {
+    setProcessingItem(itemId)
+    const { error } = await supabase.from('order_items').update({ price_changed: false }).eq('id', itemId)
+    if (!error) await fetchMyOrders()
+    setProcessingItem(null)
+  }
+
+  const handleRemoveItem = async (orderId: string, item: any) => {
+    if (!confirm('آیا از حذف این محصول از فاکتور مطمئن هستید؟')) return
+    setProcessingItem(item.id)
+    
+    try {
+      // 1. تغییر وضعیت محصول به ناموجود تا از فاکتور کسر شود
+      await supabase.from('order_items').update({ item_status: 'out_of_stock', price_changed: false }).eq('id', item.id)
+
+      // 2. محاسبه مجدد مبلغ فاکتور مربوط به این غرفه
+      const { data: items } = await supabase.from('order_items').select('*').eq('order_id', orderId)
+      if (items) {
+        let newSubtotal = 0
+        items.forEach(i => {
+          if (i.item_status === 'available') newSubtotal += i.total_price
+        })
+        
+        const { data: orderData } = await supabase.from('orders').select('shipping_cost').eq('id', orderId).single()
+        const shippingCost = orderData?.shipping_cost || 0
+        
+        const newCommissionAmount = calculateCommission(newSubtotal)
+        const newSellerNetAmount = newSubtotal - newCommissionAmount
+        const newTotal = newSubtotal + shippingCost
+        const effectiveRate = newSubtotal > 0 ? (newCommissionAmount / newSubtotal) : 0
+
+        await supabase.from('orders').update({
+          subtotal: newSubtotal, 
+          total_amount: newTotal, 
+          commission_rate: effectiveRate,
+          commission_amount: newCommissionAmount, 
+          seller_net_amount: newSellerNetAmount
+        }).eq('id', orderId)
+      }
+
+      await fetchMyOrders()
+    } catch (error: any) {
+      alert('خطا در حذف محصول: ' + error.message)
+    }
+    setProcessingItem(null)
+  }
 
   const handleConfirmReceipt = async () => {
     if (!selectedGroup) return
@@ -130,14 +193,13 @@ export default function CustomerOrdersPage() {
   let pureProductsTotal = 0
   let totalShippingCost = 0
   let deductedAmount = 0
-  let outOfStockItems: string[] = []
 
   if (selectedGroup) {
     selectedGroup.orders.forEach((order: any) => {
       totalShippingCost += (order.shipping_cost || 0)
       order.order_items.forEach((item: any) => {
         if (item.item_status === 'available') pureProductsTotal += item.total_price
-        else if (item.item_status === 'out_of_stock') { deductedAmount += item.total_price; outOfStockItems.push(item.product_title); }
+        else if (item.item_status === 'out_of_stock') deductedAmount += item.total_price;
       })
     })
   }
@@ -241,12 +303,53 @@ export default function CustomerOrdersPage() {
                     </div>
                     <div className="divide-y divide-gray-100">
                       {order.order_items.map((item: any) => (
-                        <div key={item.id} className="p-4 flex gap-4">
+                        <div key={item.id} className={`p-4 flex gap-4 ${item.item_status === 'out_of_stock' ? 'bg-red-50/30' : ''}`}>
+                          
+                          {/* ✅ نمایش عکس محصول */}
+                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200">
+                            {item.products?.image_url ? (
+                              <img src={item.products.image_url} alt={item.product_title} className={`w-full h-full object-cover ${item.item_status === 'out_of_stock' ? 'grayscale opacity-50' : ''}`} />
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 m-auto mt-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            )}
+                          </div>
+
                           <div className="flex-grow">
                             <h4 className={`font-bold text-sm ${item.item_status === 'out_of_stock' ? 'text-red-500 line-through' : 'text-gray-800'}`}>{item.product_title}</h4>
-                            {item.item_status === 'out_of_stock' && <span className="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded">ناموجود</span>}
+                            
+                            {item.item_status === 'out_of_stock' && (
+                              <span className="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded mt-1 inline-block">ناموجود / حذف شده</span>
+                            )}
+
+                            {/* ✅ هشدار تغییر قیمت و دکمه‌های تایید/حذف */}
+                            {item.price_changed && item.item_status === 'available' && (
+                              <div className="mt-2 bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700">
+                                <p className="font-bold mb-1">قیمت این محصول توسط ادمین تغییر کرده است.</p>
+                                <p className="mb-2">قیمت قبلی: <del>{item.old_unit_price?.toLocaleString()}</del> | قیمت جدید: <strong className="text-red-800">{item.unit_price.toLocaleString()}</strong></p>
+                                <div className="flex gap-2">
+                                  <button 
+                                    onClick={() => handleApprovePrice(item.id)} 
+                                    disabled={processingItem === item.id}
+                                    className="bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition-colors flex-1 md:flex-none"
+                                  >
+                                    {processingItem === item.id ? '...' : 'تایید قیمت جدید'}
+                                  </button>
+                                  <button 
+                                    onClick={() => handleRemoveItem(order.id, item)} 
+                                    disabled={processingItem === item.id}
+                                    className="bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-red-700 transition-colors flex-1 md:flex-none"
+                                  >
+                                    {processingItem === item.id ? '...' : 'حذف از فاکتور'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <span className="font-bold text-sm text-gray-800">{item.total_price.toLocaleString()}</span>
+
+                          <div className="flex flex-col items-end justify-between shrink-0">
+                            <span className="font-bold text-sm text-gray-800">{item.total_price.toLocaleString()}</span>
+                            <span className="text-xs text-gray-500">{item.quantity} عدد</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -270,7 +373,7 @@ export default function CustomerOrdersPage() {
                     )}
                     {deductedAmount > 0 && (
                       <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700">
-                        مبلغ {deductedAmount.toLocaleString()} تومان بابت ناموجودی کسر شد.
+                        مبلغ {deductedAmount.toLocaleString()} تومان بابت ناموجودی یا حذف کسر شد.
                       </div>
                     )}
                   </div>
@@ -314,7 +417,6 @@ export default function CustomerOrdersPage() {
                     <span className="font-black text-2xl text-indigo-600">{finalTotal.toLocaleString()} <span className="text-xs font-normal text-gray-600">تومان</span></span>
                   </div>
                   
-                  {/* ✅ دکمه پرداخت اضافه شد */}
                   {selectedGroup.status === 'pending_payment' && (
                     <Link href={`/payment/group/${selectedGroup.id}`} className="w-full block text-center bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-md">
                       پرداخت فاکتور
