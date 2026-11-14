@@ -5,15 +5,6 @@ import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-const calculateCommission = (subtotal: number) => {
-  let commission = 0;
-  if (subtotal <= 2000000) commission = subtotal * 0.05;
-  else if (subtotal <= 4000000) commission = (2000000 * 0.05) + ((subtotal - 2000000) * 0.04);
-  else if (subtotal <= 6000000) commission = (2000000 * 0.05) + (2000000 * 0.04) + ((subtotal - 4000000) * 0.03);
-  else commission = (2000000 * 0.05) + (2000000 * 0.04) + (2000000 * 0.03) + ((subtotal - 6000000) * 0.02);
-  return commission;
-}
-
 export default function CustomerOrdersPage() {
   const [groupedOrders, setGroupedOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,51 +76,18 @@ export default function CustomerOrdersPage() {
     setProcessingItem(null)
   }
 
-  const handleRemoveItem = async (orderId: string, item: any) => {
+  const handleRemoveItem = async (item: any) => {
     if (!confirm('آیا از حذف این محصول از فاکتور مطمئن هستید؟')) return
     setProcessingItem(item.id)
     
     try {
-      // ✅ بررسی دقیق خطای دیتابیس (چون Supabase خطاها را Throw نمی‌کند)
-      const { error: itemError } = await supabase.from('order_items')
-        .update({ item_status: 'removed_by_customer', price_changed: false })
-        .eq('id', item.id)
+      // ✅ فراخوانی تابع دیتابیس برای حذف محصول و محاسبه مجدد
+      const { error } = await supabase.rpc('remove_customer_item', {
+        p_item_id: item.id
+      })
 
-      if (itemError) {
-        throw new Error(`خطا در دیتابیس (آیا SQL را اجرا کردید؟): ${itemError.message}`)
-      }
-
-      // محاسبه مجدد مبلغ فاکتور
-      const { data: items, error: fetchError } = await supabase.from('order_items').select('*').eq('order_id', orderId)
-      if (fetchError) throw new Error(`خطا در دریافت اطلاعات: ${fetchError.message}`)
-
-      if (items) {
-        let newSubtotal = 0
-        items.forEach(i => {
-          if (i.item_status === 'available') newSubtotal += i.total_price
-        })
-        
-        const { data: orderData, error: orderFetchError } = await supabase.from('orders').select('shipping_cost').eq('id', orderId).single()
-        if (orderFetchError) throw new Error(`خطا در دریافت فاکتور: ${orderFetchError.message}`)
-
-        const shippingCost = orderData?.shipping_cost || 0
-        
-        const newCommissionAmount = calculateCommission(newSubtotal)
-        const newSellerNetAmount = newSubtotal - newCommissionAmount
-        const newTotal = newSubtotal + shippingCost
-        const effectiveRate = newSubtotal > 0 ? (newCommissionAmount / newSubtotal) : 0
-
-        const { error: updateOrderError } = await supabase.from('orders').update({
-          subtotal: newSubtotal, 
-          total_amount: newTotal, 
-          commission_rate: effectiveRate,
-          commission_amount: newCommissionAmount, 
-          seller_net_amount: newSellerNetAmount
-        }).eq('id', orderId)
-
-        if (updateOrderError) throw new Error(`خطا در آپدیت فاکتور: ${updateOrderError.message}`)
-      }
-
+      if (error) throw new Error(`خطا در حذف محصول: ${error.message}`)
+      
       await fetchMyOrders()
     } catch (error: any) {
       alert(error.message)
@@ -354,7 +312,7 @@ export default function CustomerOrdersPage() {
                                       {processingItem === item.id ? '...' : 'تایید قیمت جدید'}
                                     </button>
                                     <button 
-                                      onClick={() => handleRemoveItem(order.id, item)} 
+                                      onClick={() => handleRemoveItem(item)} 
                                       disabled={processingItem === item.id}
                                       className="bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-red-700 transition-colors flex-1 md:flex-none"
                                     >
