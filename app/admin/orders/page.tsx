@@ -4,6 +4,16 @@ import { useEffect, useState, Suspense } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+// ✅ تابع تبدیل اعداد فارسی و عربی به انگلیسی
+const toEnglishDigits = (str: string) => {
+  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return str
+    .replace(/[۰-۹]/g, (w) => persianDigits.indexOf(w).toString())
+    .replace(/[٠-٩]/g, (w) => arabicDigits.indexOf(w).toString())
+    .replace(/[^0-9]/g, ''); // حذف هر کاراکتر غیر عددی مثل کاما
+};
+
 const calculateCommission = (subtotal: number) => {
   let commission = 0;
   if (subtotal <= 2000000) commission = subtotal * 0.05;
@@ -27,6 +37,7 @@ function AdminOrdersContent() {
   const [selectedGroup, setSelectedGroup] = useState<any[] | null>(null)
   
   const [selectedCourierId, setSelectedCourierId] = useState<string>('')
+  // استیت قیمت‌ها همچنان رشته است
   const [editedPrices, setEditedPrices] = useState<{ [key: string]: string }>({})
 
   const [showReassignModal, setShowReassignModal] = useState(false)
@@ -87,8 +98,9 @@ function AdminOrdersContent() {
       let availableItemsSum = 0
       order.order_items.forEach((item: any) => {
         if (item.item_status === 'available') {
+          // ✅ تبدیل به انگلیسی قبل از جمع زدن
           const priceStr = editedPrices[item.id] !== undefined ? editedPrices[item.id] : String(item.unit_price)
-          const finalPrice = Number(priceStr) || 0
+          const finalPrice = Number(toEnglishDigits(priceStr)) || 0
           availableItemsSum += (finalPrice * item.quantity);
         }
       })
@@ -104,7 +116,8 @@ function AdminOrdersContent() {
         for (const item of order.order_items) {
           if (item.item_status === 'available') {
             const finalPriceStr = editedPrices[item.id] !== undefined ? editedPrices[item.id] : String(item.unit_price)
-            const finalUnitPrice = Number(finalPriceStr) || 0
+            // ✅ تبدیل به انگلیسی قبل از ذخیره
+            const finalUnitPrice = Number(toEnglishDigits(finalPriceStr)) || 0
             const priceChanged = finalUnitPrice !== item.unit_price;
             const newTotalPrice = finalUnitPrice * item.quantity;
             
@@ -265,7 +278,7 @@ function AdminOrdersContent() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-right">
-              <thead className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
+              <thead className="bg-gray-50 border-b border-gray-100 text-sm text-gray-600">
                 <tr>
                   <th className="p-4 font-bold">تاریخ</th>
                   <th className="p-4 font-bold">کد فاکتور</th>
@@ -291,9 +304,9 @@ function AdminOrdersContent() {
 
                   return (
                     <tr key={firstOrder.payment_group_id || firstOrder.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="p-4 text-sm text-gray-700">{new Date(firstOrder.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit' })}</td>
-                      <td className="p-4 font-mono text-xs text-gray-500">{(firstOrder.payment_group_id || firstOrder.id).split('-')[0].toUpperCase()}</td>
-                      <td className="p-4 text-sm font-bold text-gray-600">{group.length} غرفه</td>
+                      <td className="p-4 text-sm text-gray-800">{new Date(firstOrder.created_at).toLocaleDateString('fa-IR', { hour: '2-digit', minute: '2-digit' })}</td>
+                      <td className="p-4 font-mono text-xs text-gray-600">{(firstOrder.payment_group_id || firstOrder.id).split('-')[0].toUpperCase()}</td>
+                      <td className="p-4 text-sm font-bold text-gray-700">{group.length} غرفه</td>
                       <td className="p-4">
                         {groupStatusLabel && (
                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${allDelivered ? 'bg-teal-100 text-teal-700' : 'bg-purple-100 text-purple-700'}`}>
@@ -301,9 +314,9 @@ function AdminOrdersContent() {
                           </span>
                         )}
                       </td>
-                      <td className="p-4 font-bold text-gray-800">{totalGroupAmount.toLocaleString()} <span className="text-xs font-normal text-gray-400">تومان</span></td>
+                      <td className="p-4 font-bold text-gray-800">{totalGroupAmount.toLocaleString()} <span className="text-xs font-normal text-gray-500">تومان</span></td>
                       {activeTab === 'delivered' && (
-                        <td className="p-4 text-xs font-bold text-gray-600">{firstOrder.courier?.full_name || 'نامشخص'}</td>
+                        <td className="p-4 text-xs font-bold text-gray-700">{firstOrder.courier?.full_name || 'نامشخص'}</td>
                       )}
                       <td className="p-4 text-center">
                         <button onClick={() => { setSelectedGroup(group); setSelectedCourierId(''); setEditedPrices({}); }} className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-colors">
@@ -325,11 +338,11 @@ function AdminOrdersContent() {
             <div className="bg-white p-5 border-b flex justify-between items-center z-10 shrink-0">
               <div>
                 <h3 className="font-bold text-lg text-gray-800">جزئیات فاکتور</h3>
-                <div className="flex items-center gap-3 text-xs text-gray-500 font-mono mt-1">
+                <div className="flex items-center gap-3 text-xs text-gray-600 font-mono mt-1">
                   <span>کد: {(selectedGroup[0].payment_group_id || selectedGroup[0].id).split('-')[0].toUpperCase()}</span>
                 </div>
               </div>
-              <button onClick={() => setSelectedGroup(null)} className="text-gray-400 hover:text-red-500 bg-gray-50 p-2 rounded-full transition-colors">
+              <button onClick={() => setSelectedGroup(null)} className="text-gray-500 hover:text-red-500 bg-gray-50 p-2 rounded-full transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -386,35 +399,37 @@ function AdminOrdersContent() {
                       return (
                         <div key={item.id} className={`flex flex-col md:grid md:grid-cols-[1fr_60px_120px_140px] items-start md:items-center gap-3 p-3 border-b border-gray-50 last:border-0 ${isOutOfStock ? 'bg-red-50/30' : ''}`}>
                           
-                          <div className={`w-full font-bold text-sm text-right ${isOutOfStock ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                          <div className={`w-full font-bold text-sm text-right ${isOutOfStock ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                             {item.product_title}
                           </div>
 
                           <div className="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-auto gap-2 md:gap-3">
-                            <div className="text-center text-xs bg-gray-100 text-gray-600 font-bold py-1 px-3 rounded">
+                            <div className="text-center text-xs bg-gray-100 text-gray-700 font-bold py-1 px-3 rounded">
                               {item.quantity} عدد
                             </div>
                             
                             {activeTab === 'pending_admin_review' && !isOutOfStock ? (
                               <div className="relative w-24">
+                                {/* ✅ تغییر type به text برای پذیرش راحت‌تر اعداد */}
                                 <input 
-                                  type="number" 
+                                  type="text" 
+                                  inputMode="numeric"
                                   value={editedPrices[item.id] !== undefined ? editedPrices[item.id] : item.unit_price}
-                                  onChange={(e) => setEditedPrices({ ...editedPrices, [item.id]: e.target.value })}
-                                  className={`w-full text-left font-bold text-sm border rounded-lg px-2 py-1 outline-none transition-colors ${editedPrices[item.id] !== undefined && editedPrices[item.id] !== String(item.unit_price) ? 'border-red-400 text-red-600 bg-red-50' : 'border-gray-200 text-gray-700'}`}
+                                  onChange={(e) => setEditedPrices({ ...editedPrices, [item.id]: toEnglishDigits(e.target.value) })}
+                                  className={`w-full text-left font-bold text-sm border rounded-lg px-2 py-1 outline-none transition-colors ${editedPrices[item.id] !== undefined && editedPrices[item.id] !== String(item.unit_price) ? 'border-red-400 text-red-600 bg-red-50' : 'border-gray-300 text-gray-800'}`}
                                   dir="ltr"
                                 />
                               </div>
                             ) : (
-                              <div className={`text-left font-bold text-sm w-24 ${isOutOfStock ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                              <div className={`text-left font-bold text-sm w-24 ${isOutOfStock ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                                 {item.unit_price.toLocaleString()}
                               </div>
                             )}
                             
                             {activeTab === 'pending_admin_review' ? (
                               <div className="flex gap-1 justify-end w-full md:w-auto mt-2 md:mt-0">
-                                <button onClick={() => setItemStatus(order.id, item.id, 'available')} className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${!isOutOfStock ? 'bg-green-500 text-white border-green-600' : 'bg-white text-gray-500 border-gray-200 hover:bg-green-50'}`}>موجود</button>
-                                <button onClick={() => setItemStatus(order.id, item.id, 'out_of_stock')} className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isOutOfStock ? 'bg-red-500 text-white border-red-600' : 'bg-white text-gray-500 border-gray-200 hover:bg-red-50'}`}>ناموجود</button>
+                                <button onClick={() => setItemStatus(order.id, item.id, 'available')} className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${!isOutOfStock ? 'bg-green-500 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-green-50'}`}>موجود</button>
+                                <button onClick={() => setItemStatus(order.id, item.id, 'out_of_stock')} className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isOutOfStock ? 'bg-red-500 text-white border-red-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-red-50'}`}>ناموجود</button>
                               </div>
                             ) : (
                               <div className={`text-left text-xs font-bold flex flex-col items-end w-full md:w-auto mt-2 md:mt-0 ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
@@ -447,7 +462,7 @@ function AdminOrdersContent() {
                   <select 
                     value={selectedCourierId} 
                     onChange={(e) => setSelectedCourierId(e.target.value)}
-                    className="bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-sm font-bold"
+                    className="bg-gray-50 border border-gray-300 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-green-500 text-sm font-bold text-gray-800"
                   >
                     <option value="">انتخاب پیک...</option>
                     {couriers.map(c => (
@@ -493,7 +508,7 @@ function AdminOrdersContent() {
                 <select
                   value={newCourierId}
                   onChange={(e) => setNewCourierId(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold"
+                  className="w-full bg-gray-50 border border-gray-300 px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-gray-800"
                 >
                   <option value="">-- انتخاب پیک --</option>
                   {couriers.filter(c => !c.isBusy || c.id === selectedGroup[0].courier_id).map(c => (
@@ -502,7 +517,7 @@ function AdminOrdersContent() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-400 mt-2">فقط پیک‌های آزاد در این لیست نمایش داده می‌شوند.</p>
+                <p className="text-xs text-gray-500 mt-2">فقط پیک‌های آزاد در این لیست نمایش داده می‌شوند.</p>
               </div>
             </div>
 
@@ -516,7 +531,7 @@ function AdminOrdersContent() {
               </button>
               <button 
                 onClick={() => { setShowReassignModal(false); setNewCourierId(''); }}
-                className="px-6 bg-white text-gray-700 border border-gray-200 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
+                className="px-6 bg-white text-gray-700 border border-gray-300 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
               >
                 انصراف
               </button>
