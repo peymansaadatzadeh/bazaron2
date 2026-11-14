@@ -4,14 +4,26 @@ import { useEffect, useState, Suspense } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-// ✅ تابع تبدیل اعداد فارسی و عربی به انگلیسی
-const toEnglishDigits = (str: string) => {
-  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  return str
-    .replace(/[۰-۹]/g, (w) => persianDigits.indexOf(w).toString())
-    .replace(/[٠-٩]/g, (w) => arabicDigits.indexOf(w).toString())
-    .replace(/[^0-9]/g, ''); // حذف هر کاراکتر غیر عددی مثل کاما
+// ✅ توابع کمکی برای فرمت اعداد با کاما
+const formatPrice = (value: string | number) => {
+  if (value === undefined || value === null) return '';
+  const str = String(value);
+  const englishStr = str
+    .replace(/[۰-۹]/g, (w) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(w)))
+    .replace(/,/g, '')
+    .replace(/[^0-9]/g, '');
+  if (!englishStr) return '';
+  return Number(englishStr).toLocaleString('en-US');
+};
+
+const parsePrice = (value: string) => {
+  const englishStr = value
+    .replace(/[۰-۹]/g, (w) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(w)))
+    .replace(/,/g, '')
+    .replace(/[^0-9]/g, '');
+  return Number(englishStr) || 0;
 };
 
 const calculateCommission = (subtotal: number) => {
@@ -37,7 +49,6 @@ function AdminOrdersContent() {
   const [selectedGroup, setSelectedGroup] = useState<any[] | null>(null)
   
   const [selectedCourierId, setSelectedCourierId] = useState<string>('')
-  // استیت قیمت‌ها همچنان رشته است
   const [editedPrices, setEditedPrices] = useState<{ [key: string]: string }>({})
 
   const [showReassignModal, setShowReassignModal] = useState(false)
@@ -98,9 +109,8 @@ function AdminOrdersContent() {
       let availableItemsSum = 0
       order.order_items.forEach((item: any) => {
         if (item.item_status === 'available') {
-          // ✅ تبدیل به انگلیسی قبل از جمع زدن
           const priceStr = editedPrices[item.id] !== undefined ? editedPrices[item.id] : String(item.unit_price)
-          const finalPrice = Number(toEnglishDigits(priceStr)) || 0
+          const finalPrice = parsePrice(priceStr)
           availableItemsSum += (finalPrice * item.quantity);
         }
       })
@@ -116,8 +126,7 @@ function AdminOrdersContent() {
         for (const item of order.order_items) {
           if (item.item_status === 'available') {
             const finalPriceStr = editedPrices[item.id] !== undefined ? editedPrices[item.id] : String(item.unit_price)
-            // ✅ تبدیل به انگلیسی قبل از ذخیره
-            const finalUnitPrice = Number(toEnglishDigits(finalPriceStr)) || 0
+            const finalUnitPrice = parsePrice(finalPriceStr)
             const priceChanged = finalUnitPrice !== item.unit_price;
             const newTotalPrice = finalUnitPrice * item.quantity;
             
@@ -409,19 +418,18 @@ function AdminOrdersContent() {
                             </div>
                             
                             {activeTab === 'pending_admin_review' && !isOutOfStock ? (
-                              <div className="relative w-24">
-                                {/* ✅ تغییر type به text برای پذیرش راحت‌تر اعداد */}
+                              <div className="relative w-28">
                                 <input 
                                   type="text" 
                                   inputMode="numeric"
-                                  value={editedPrices[item.id] !== undefined ? editedPrices[item.id] : item.unit_price}
-                                  onChange={(e) => setEditedPrices({ ...editedPrices, [item.id]: toEnglishDigits(e.target.value) })}
-                                  className={`w-full text-left font-bold text-sm border rounded-lg px-2 py-1 outline-none transition-colors ${editedPrices[item.id] !== undefined && editedPrices[item.id] !== String(item.unit_price) ? 'border-red-400 text-red-600 bg-red-50' : 'border-gray-300 text-gray-800'}`}
+                                  value={editedPrices[item.id] !== undefined ? editedPrices[item.id] : formatPrice(item.unit_price)}
+                                  onChange={(e) => setEditedPrices({ ...editedPrices, [item.id]: formatPrice(e.target.value) })}
+                                  className={`w-full text-left font-bold text-sm border rounded-lg px-2 py-1 outline-none transition-colors ${editedPrices[item.id] !== undefined && editedPrices[item.id] !== formatPrice(item.unit_price) ? 'border-red-400 text-red-600 bg-red-50' : 'border-gray-300 text-gray-800'}`}
                                   dir="ltr"
                                 />
                               </div>
                             ) : (
-                              <div className={`text-left font-bold text-sm w-24 ${isOutOfStock ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                              <div className={`text-left font-bold text-sm w-28 ${isOutOfStock ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                                 {item.unit_price.toLocaleString()}
                               </div>
                             )}
