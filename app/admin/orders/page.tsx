@@ -65,7 +65,6 @@ function AdminOrdersContent() {
 
     setLoading(true)
 
-    // ✅ اضافه شدن products (image_url) به کوئری
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
       .select(`*, stores (name, phone_number, address), order_items (*, products (image_url)), courier:profiles!courier_id (full_name, phone_number)`)
@@ -142,9 +141,13 @@ function AdminOrdersContent() {
             if (priceChanged) {
               await supabase.from('products').update({ price: finalUnitPrice, discount_price: null }).eq('id', item.product_id)
             }
-          } else {
+          } else if (item.item_status === 'out_of_stock') {
+            // ✅ فقط اگر ادمین خودش ناموجود کرده، موجودی کل صفر شود
             await supabase.from('order_items').update({ item_status: 'out_of_stock' }).eq('id', item.id)
             await supabase.from('products').update({ stock: 0 }).eq('id', item.product_id)
+          } else if (item.item_status === 'removed_by_customer') {
+            // ✅ اگر مشتری به خاطر تغییر قیمت حذف کرده، به موجودی کل کاری نداشته باش
+            await supabase.from('order_items').update({ item_status: 'removed_by_customer' }).eq('id', item.id)
           }
         }
         
@@ -404,20 +407,22 @@ function AdminOrdersContent() {
                   </div>
                   <div className="flex flex-col">
                     {order.order_items.map((item: any) => {
-                      const isOutOfStock = item.item_status === 'out_of_stock'
+                      const isOutOfStock = item.item_status === 'out_of_stock';
+                      const isRemovedByCustomer = item.item_status === 'removed_by_customer';
+                      const isUnavailable = isOutOfStock || isRemovedByCustomer;
+                      
                       return (
-                        <div key={item.id} className={`flex flex-col md:grid md:grid-cols-[40px_1fr_60px_120px_140px] items-start md:items-center gap-3 p-3 border-b border-gray-50 last:border-0 ${isOutOfStock ? 'bg-red-50/30' : ''}`}>
+                        <div key={item.id} className={`flex flex-col md:grid md:grid-cols-[40px_1fr_60px_120px_140px] items-start md:items-center gap-3 p-3 border-b border-gray-50 last:border-0 ${isUnavailable ? 'bg-red-50/30' : ''}`}>
                           
-                          {/* ✅ نمایش عکس محصول */}
                           <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200 hidden md:block">
                             {item.products?.image_url ? (
-                              <img src={item.products.image_url} alt={item.product_title} className={`w-full h-full object-cover ${isOutOfStock ? 'grayscale opacity-50' : ''}`} />
+                              <img src={item.products.image_url} alt={item.product_title} className={`w-full h-full object-cover ${isUnavailable ? 'grayscale opacity-50' : ''}`} />
                             ) : (
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 m-auto mt-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             )}
                           </div>
 
-                          <div className={`w-full font-bold text-sm text-right ${isOutOfStock ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                          <div className={`w-full font-bold text-sm text-right ${isUnavailable ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                             {item.product_title}
                           </div>
 
@@ -426,7 +431,7 @@ function AdminOrdersContent() {
                               {item.quantity} عدد
                             </div>
                             
-                            {activeTab === 'pending_admin_review' && !isOutOfStock ? (
+                            {activeTab === 'pending_admin_review' && !isUnavailable ? (
                               <div className="relative w-28">
                                 <input 
                                   type="text" 
@@ -438,19 +443,19 @@ function AdminOrdersContent() {
                                 />
                               </div>
                             ) : (
-                              <div className={`text-left font-bold text-sm w-28 ${isOutOfStock ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                              <div className={`text-left font-bold text-sm w-28 ${isUnavailable ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                                 {item.unit_price.toLocaleString()}
                               </div>
                             )}
                             
                             {activeTab === 'pending_admin_review' ? (
                               <div className="flex gap-1 justify-end w-full md:w-auto mt-2 md:mt-0">
-                                <button onClick={() => setItemStatus(order.id, item.id, 'available')} className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${!isOutOfStock ? 'bg-green-500 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-green-50'}`}>موجود</button>
+                                <button onClick={() => setItemStatus(order.id, item.id, 'available')} className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${!isUnavailable ? 'bg-green-500 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-green-50'}`}>موجود</button>
                                 <button onClick={() => setItemStatus(order.id, item.id, 'out_of_stock')} className={`flex-1 md:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isOutOfStock ? 'bg-red-500 text-white border-red-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-red-50'}`}>ناموجود</button>
                               </div>
                             ) : (
-                              <div className={`text-left text-xs font-bold flex flex-col items-end w-full md:w-auto mt-2 md:mt-0 ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
-                                {isOutOfStock ? 'ناموجود' : 'موجود'}
+                              <div className={`text-left text-xs font-bold flex flex-col items-end w-full md:w-auto mt-2 md:mt-0 ${isUnavailable ? 'text-red-500' : 'text-green-600'}`}>
+                                {isOutOfStock ? 'ناموجود' : isRemovedByCustomer ? 'حذف توسط مشتری' : 'موجود'}
                                 {item.price_changed && <span className="text-[9px] text-orange-500 font-black mt-0.5 bg-orange-50 px-1 rounded">تغییر قیمت</span>}
                               </div>
                             )}
