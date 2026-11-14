@@ -4,6 +4,28 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
+// ✅ توابع کمکی برای فرمت اعداد با کاما
+const formatPrice = (value: string | number) => {
+  if (value === undefined || value === null) return '';
+  const str = String(value);
+  const englishStr = str
+    .replace(/[۰-۹]/g, (w) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(w)))
+    .replace(/,/g, '')
+    .replace(/[^0-9]/g, '');
+  if (!englishStr) return '';
+  return Number(englishStr).toLocaleString('en-US');
+};
+
+const parsePrice = (value: string) => {
+  const englishStr = value
+    .replace(/[۰-۹]/g, (w) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(w)))
+    .replace(/,/g, '')
+    .replace(/[^0-9]/g, '');
+  return Number(englishStr) || 0;
+};
+
 type ImageSlot = { url: string; id?: string; file?: File } | null;
 type CardStatus = { id: string; state: 'saving' | 'success' | 'error' } | null;
 
@@ -106,8 +128,9 @@ export default function ProductsPage() {
       const mainImageUrl = finalImageUrls.length > 0 ? finalImageUrls[0] : null
 
       const { data: newProduct, error: productError } = await supabase.from('products').insert([{
-        store_id: storeId, title, description, price: Number(price),
-        discount_price: discountPrice ? Number(discountPrice) : null,
+        store_id: storeId, title, description, 
+        price: parsePrice(price), // ✅ تبدیل کاما به عدد
+        discount_price: discountPrice ? parsePrice(discountPrice) : null, // ✅ تبدیل کاما به عدد
         stock: Number(stock), image_url: mainImageUrl, category, size, color,
         contact_phone: contactPhone, contact_email: contactEmail, 
         status: 'pending_approval'
@@ -139,8 +162,8 @@ export default function ProductsPage() {
   const openEditModal = (product: any) => {
     setEditingProduct(product)
     setEditTitle(product.title)
-    setEditPrice(product.price)
-    setEditDiscountPrice(product.discount_price || '')
+    setEditPrice(formatPrice(product.price)) // ✅ نمایش با کاما
+    setEditDiscountPrice(product.discount_price ? formatPrice(product.discount_price) : '') // ✅ نمایش با کاما
     setEditStock(product.stock)
     setEditDescription(product.description || '')
     setEditSize(product.size || '')
@@ -200,16 +223,16 @@ export default function ProductsPage() {
 
       const mainImageUrl = finalImageUrls.length > 0 ? finalImageUrls[0] : null
 
-      // ⚠️ تغییر امنیتی مهم: هر بار که محصول ویرایش میشود، وضعیت آن به "در انتظار تایید" برمیگردد
       const newStatus = 'pending_approval'
 
       const { error } = await supabase.from('products').update({
-        title: editTitle, price: Number(editPrice),
-        discount_price: editDiscountPrice ? Number(editDiscountPrice) : null,
+        title: editTitle, 
+        price: parsePrice(editPrice), // ✅ تبدیل کاما به عدد
+        discount_price: editDiscountPrice ? parsePrice(editDiscountPrice) : null, // ✅ تبدیل کاما به عدد
         stock: Number(editStock), description: editDescription, size: editSize, color: editColor,
         image_url: mainImageUrl,
         status: newStatus,
-        rejection_reason: null // دلیل رد قبلی پاک میشود
+        rejection_reason: null
       }).eq('id', pid)
 
       if (error) throw error
@@ -265,7 +288,7 @@ export default function ProductsPage() {
               <span className="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">عکس کاور</span>
             </>
           ) : (
-            <div className="flex flex-col items-center text-gray-400">
+            <div className="flex flex-col items-center text-gray-500">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               <span className="text-xs font-bold">افزودن عکس کاور</span>
             </div>
@@ -281,7 +304,7 @@ export default function ProductsPage() {
                 <button type="button" onClick={(e) => { e.preventDefault(); onRemove(index); }} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-20"><svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
               </>
             ) : (
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             )}
           </div>
         ))}
@@ -299,24 +322,24 @@ export default function ProductsPage() {
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 sticky top-28">
             <h2 className="text-xl font-bold mb-6 text-gray-800 border-b pb-4 border-gray-100">افزودن محصول جدید</h2>
             <form onSubmit={handleAddProduct} className="space-y-4">
-              <div><label className="block text-sm font-bold text-gray-700 mb-1">نام محصول *</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" /></div>
+              <div><label className="block text-sm font-bold text-gray-700 mb-1">نام محصول *</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-800" /></div>
               <div className="flex gap-2">
-                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت اصلی *</label><input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl text-left" dir="ltr" /></div>
-                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت با تخفیف</label><input type="number" value={discountPrice} onChange={(e) => setDiscountPrice(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl text-left text-green-600" dir="ltr" /></div>
+                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت اصلی *</label><input type="text" inputMode="numeric" value={price} onChange={(e) => setPrice(formatPrice(e.target.value))} required className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-left text-gray-800" dir="ltr" /></div>
+                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت با تخفیف</label><input type="text" inputMode="numeric" value={discountPrice} onChange={(e) => setDiscountPrice(formatPrice(e.target.value))} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-left text-green-600 font-bold" dir="ltr" /></div>
               </div>
               <div className="flex gap-2">
-                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">موجودی *</label><input type="number" value={stock} onChange={(e) => setStock(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl text-left" dir="ltr" /></div>
-                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">دسته‌بندی</label><input type="text" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl" /></div>
+                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">موجودی *</label><input type="number" value={stock} onChange={(e) => setStock(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-left text-gray-800" dir="ltr" /></div>
+                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">دسته‌بندی</label><input type="text" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800" /></div>
               </div>
               <div className="flex gap-2">
-                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">سایز</label><input type="text" value={size} onChange={(e) => setSize(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl" /></div>
-                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">رنگ</label><input type="text" value={color} onChange={(e) => setColor(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl" /></div>
+                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">سایز</label><input type="text" value={size} onChange={(e) => setSize(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800" /></div>
+                <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">رنگ</label><input type="text" value={color} onChange={(e) => setColor(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800" /></div>
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">گالری عکس‌ها</label>
                 <ImageSlotsGrid slots={addSlots} onSelect={handleAddImageSelect} onRemove={handleAddImageRemove} refs={addFileInputRefs} />
               </div>
-              <div><label className="block text-sm font-bold text-gray-700 mb-1">توضیحات</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl"></textarea></div>
+              <div><label className="block text-sm font-bold text-gray-700 mb-1">توضیحات</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800"></textarea></div>
               <button type="submit" disabled={uploading} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 rounded-xl hover:shadow-lg disabled:from-gray-300 disabled:to-gray-400 font-bold mt-4 transition-all">
                 {uploading ? 'در حال ثبت...' : 'افزودن محصول'}
               </button>
@@ -332,7 +355,7 @@ export default function ProductsPage() {
                 const isProcessing = cardStatus?.id === product.id;
                 
                 return (
-                  <div key={product.id} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden flex flex-col group relative transition-all duration-300">
+                  <div key={product.id} className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden flex flex-col group relative transition-all duration-300">
                     
                     {isProcessing && (
                       <div className={`absolute inset-0 z-30 flex flex-col items-center justify-center rounded-2xl backdrop-blur-sm transition-colors duration-300 ${
@@ -357,8 +380,8 @@ export default function ProductsPage() {
                         <button onClick={() => openEditModal(product)} disabled={isProcessing} className="bg-white text-blue-600 p-1.5 rounded-lg shadow-sm hover:bg-blue-50 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
                         <button onClick={() => handleDeleteProduct(product.id)} disabled={isProcessing} className="bg-white text-red-600 p-1.5 rounded-lg shadow-sm hover:bg-red-50 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                       </div>
-                      <div className="h-32 bg-white relative border-b border-gray-100 overflow-hidden">
-                        {product.image_url ? <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" /> : <div className="flex h-full items-center justify-center text-gray-300 text-xs">بدون عکس</div>}
+                      <div className="h-32 bg-white relative border-b border-gray-200 overflow-hidden">
+                        {product.image_url ? <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" /> : <div className="flex h-full items-center justify-center text-gray-400 text-xs">بدون عکس</div>}
                       </div>
                       <div className="p-3 flex-grow flex flex-col justify-between">
                         <h4 className="font-bold text-gray-800 text-sm truncate">{product.title}</h4>
@@ -379,8 +402,8 @@ export default function ProductsPage() {
                         </div>
 
                         <div className="mt-auto flex items-center justify-between">
-                          <span className="font-bold text-indigo-600 text-sm">{product.price.toLocaleString()} <span className="text-[10px] font-normal text-gray-500">تومان</span></span>
-                          <span className="text-[10px] text-gray-500 bg-white px-2 py-1 rounded-md border border-gray-100">موجودی: {product.stock}</span>
+                          <span className="font-bold text-indigo-600 text-sm">{product.price.toLocaleString()} <span className="text-[10px] font-normal text-gray-600">تومان</span></span>
+                          <span className="text-[10px] text-gray-600 bg-white px-2 py-1 rounded-md border border-gray-200">موجودی: {product.stock}</span>
                         </div>
                       </div>
                     </div>
@@ -396,8 +419,8 @@ export default function ProductsPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="bg-gray-50 p-4 border-b flex justify-between items-center">
-              <h3 className="font-bold text-lg">ویرایش محصول</h3>
-              <button onClick={() => setEditingProduct(null)} className="text-gray-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              <h3 className="font-bold text-lg text-gray-800">ویرایش محصول</h3>
+              <button onClick={() => setEditingProduct(null)} className="text-gray-500 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             
             <div className="p-6 overflow-y-auto">
@@ -406,23 +429,23 @@ export default function ProductsPage() {
                   <label className="block text-sm font-bold text-gray-700 mb-1">گالری عکس‌ها</label>
                   <ImageSlotsGrid slots={editSlots} onSelect={handleEditImageSelect} onRemove={handleEditImageRemove} refs={editFileInputRefs} />
                 </div>
-                <div><label className="block text-sm font-bold text-gray-700 mb-1">نام محصول</label><input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl" /></div>
+                <div><label className="block text-sm font-bold text-gray-700 mb-1">نام محصول</label><input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800" /></div>
                 <div className="flex gap-2">
-                  <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت اصلی</label><input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl text-left" dir="ltr" /></div>
-                  <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت با تخفیف</label><input type="number" value={editDiscountPrice} onChange={(e) => setEditDiscountPrice(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl text-left text-green-600" dir="ltr" /></div>
+                  <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت اصلی</label><input type="text" inputMode="numeric" value={editPrice} onChange={(e) => setEditPrice(formatPrice(e.target.value))} required className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-left text-gray-800" dir="ltr" /></div>
+                  <div className="w-1/2"><label className="block text-sm font-bold text-gray-700 mb-1">قیمت با تخفیف</label><input type="text" inputMode="numeric" value={editDiscountPrice} onChange={(e) => setEditDiscountPrice(formatPrice(e.target.value))} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-left text-green-600 font-bold" dir="ltr" /></div>
                 </div>
                 <div className="flex gap-2">
-                  <div className="w-1/3"><label className="block text-sm font-bold text-gray-700 mb-1">موجودی</label><input type="number" value={editStock} onChange={(e) => setEditStock(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl text-left" dir="ltr" /></div>
-                  <div className="w-1/3"><label className="block text-sm font-bold text-gray-700 mb-1">سایز</label><input type="text" value={editSize} onChange={(e) => setEditSize(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl" /></div>
-                  <div className="w-1/3"><label className="block text-sm font-bold text-gray-700 mb-1">رنگ</label><input type="text" value={editColor} onChange={(e) => setEditColor(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl" /></div>
+                  <div className="w-1/3"><label className="block text-sm font-bold text-gray-700 mb-1">موجودی</label><input type="number" value={editStock} onChange={(e) => setEditStock(e.target.value)} required className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-left text-gray-800" dir="ltr" /></div>
+                  <div className="w-1/3"><label className="block text-sm font-bold text-gray-700 mb-1">سایز</label><input type="text" value={editSize} onChange={(e) => setEditSize(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800" /></div>
+                  <div className="w-1/3"><label className="block text-sm font-bold text-gray-700 mb-1">رنگ</label><input type="text" value={editColor} onChange={(e) => setEditColor(e.target.value)} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800" /></div>
                 </div>
-                <div><label className="block text-sm font-bold text-gray-700 mb-1">توضیحات</label><textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} className="w-full bg-gray-50 px-4 py-2 border border-gray-200 rounded-xl"></textarea></div>
+                <div><label className="block text-sm font-bold text-gray-700 mb-1">توضیحات</label><textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} className="w-full bg-gray-50 px-4 py-2 border border-gray-300 rounded-xl text-gray-800"></textarea></div>
               </form>
             </div>
             
             <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
-              <button onClick={() => setEditingProduct(null)} className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">انصراف</button>
-              <button type="submit" form="editForm" className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700">ذخیره تغییرات</button>
+              <button onClick={() => setEditingProduct(null)} className="px-4 py-2 text-gray-700 font-bold hover:bg-gray-200 rounded-xl transition-colors">انصراف</button>
+              <button type="submit" form="editForm" className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-colors">ذخیره تغییرات</button>
             </div>
           </div>
         </div>
