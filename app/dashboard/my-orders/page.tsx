@@ -10,7 +10,6 @@ export default function CustomerOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [selectedGroup, setSelectedGroup] = useState<any>(null)
   
-  // ✅ استیت‌های مربوط به امتیازدهی پیک
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [courierRating, setCourierRating] = useState(0)
   const [courierComment, setCourierComment] = useState('')
@@ -75,7 +74,6 @@ export default function CustomerOrdersPage() {
       if (error) throw error
       if (!updatedData || updatedData.length === 0) throw new Error('سیستم دیتابیس اجازه تغییر وضعیت را نداد.')
 
-      // ✅ بستن مودال فاکتور و باز کردن مودال امتیازدهی
       setShowRatingModal(true)
       
     } catch (error: any) {
@@ -83,7 +81,6 @@ export default function CustomerOrdersPage() {
     }
   }
 
-  // ✅ تابع ثبت امتیاز پیک
   const handleSubmitCourierRating = async () => {
     if (courierRating === 0) {
       alert('لطفاً ابتدا با کلیک روی ستاره‌ها، به پیک امتیاز دهید.')
@@ -130,7 +127,6 @@ export default function CustomerOrdersPage() {
 
   if (loading) return <div className="flex justify-center items-center min-h-screen bg-gray-50"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div></div>
 
-  // محاسبه مبالغ
   let pureProductsTotal = 0
   let totalShippingCost = 0
   let deductedAmount = 0
@@ -178,7 +174,6 @@ export default function CustomerOrdersPage() {
                     const isShipped = group.status === 'shipped'
                     const isDelivered = group.status === 'delivered'
                     
-                    // محاسبه مبلغ برای نمایش در جدول
                     let groupTotal = 0;
                     group.orders.forEach((o: any) => {
                       o.order_items.forEach((item: any) => {
@@ -220,10 +215,10 @@ export default function CustomerOrdersPage() {
         )}
       </div>
 
-      {/* مودال اصلی فاکتور */}
       {selectedGroup && !showRatingModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in-up">
+          {/* ✅ ارتفاع ثابت با h-[90vh] و ساختار ریسپانسیو */}
+          <div className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in-up">
             
             <div className="bg-white px-5 py-3 border-b flex justify-between items-center z-10 shrink-0 shadow-sm">
               <div>
@@ -237,9 +232,10 @@ export default function CustomerOrdersPage() {
               </button>
             </div>
             
-            <div className="flex flex-col md:flex-row flex-grow overflow-hidden bg-gray-50">
-              {/* ستون محصولات */}
-              <div className="w-full md:w-2/3 p-4 md:p-6 overflow-y-auto space-y-4">
+            {/* ✅ در موبایل کل این بخش اسکرول می‌شود تا فوتر دیده شود */}
+            <div className="flex flex-col md:flex-row flex-grow overflow-y-auto md:overflow-hidden bg-gray-50">
+              
+              <div className="w-full md:w-2/3 p-4 md:p-6 md:overflow-y-auto space-y-4 shrink-0 md:shrink">
                 {selectedGroup.orders.map((order: any) => (
                   <div key={order.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-gray-50/80 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -260,8 +256,7 @@ export default function CustomerOrdersPage() {
                 ))}
               </div>
 
-              {/* ✅ ستون خلاصه فاکتور با قابلیت اسکرول */}
-              <div className="w-full md:w-1/3 bg-white border-r border-gray-100 p-6 flex flex-col justify-between shrink-0 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] overflow-y-auto">
+              <div className="w-full md:w-1/3 bg-white border-t md:border-t-0 md:border-r border-gray-100 p-6 flex flex-col justify-between shrink-0 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] md:overflow-y-auto">
                 <div>
                   <h4 className="font-bold text-gray-800 text-lg mb-4 border-b pb-3">خلاصه پرداخت</h4>
                   <div className="space-y-4">
@@ -282,7 +277,6 @@ export default function CustomerOrdersPage() {
                     )}
                   </div>
 
-                  {/* اطلاعات پیک و امتیازدهی در حالت تحویل */}
                   {selectedGroup.status === 'delivered' && selectedGroup.orders[0].courier && (
                     <div className="mt-6 border-t pt-4">
                       <div className="bg-indigo-50 text-indigo-800 p-3 rounded-xl text-xs mb-4 border border-indigo-100 flex items-center gap-2">
@@ -322,7 +316,7 @@ export default function CustomerOrdersPage() {
                     <span className="font-black text-2xl text-indigo-600">{finalTotal.toLocaleString()} <span className="text-xs font-normal text-gray-500">تومان</span></span>
                   </div>
                   {selectedGroup.status === 'shipped' && (
-                    <button onClick={handleConfirmReceipt} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold text-sm">✓ تأیید دریافت</button>
+                    <button onClick={handleConfirmReceipt} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-teal-700 transition-colors">✓ تأیید دریافت</button>
                   )}
                 </div>
               </div>
@@ -331,7 +325,6 @@ export default function CustomerOrdersPage() {
         </div>
       )}
 
-      {/* ✅ مودال اختصاصی امتیازدهی */}
       {showRatingModal && selectedGroup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up">
