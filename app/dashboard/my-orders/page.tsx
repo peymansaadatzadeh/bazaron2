@@ -157,7 +157,7 @@ export default function CustomerOrdersPage() {
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-right">
-                <thead className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
+                <thead className="bg-gray-50 border-b border-gray-100 text-sm text-gray-600">
                   <tr>
                     <th className="p-5 font-bold">تاریخ و ساعت</th>
                     <th className="p-5 font-bold">کد فاکتور</th>
@@ -184,9 +184,9 @@ export default function CustomerOrdersPage() {
 
                     return (
                       <tr key={group.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="p-5 text-sm text-gray-700">{date}</td>
-                        <td className="p-5 font-mono text-xs text-gray-500">{group.id.split('-')[0].toUpperCase()}</td>
-                        <td className="p-5 font-bold text-gray-800">{groupTotal.toLocaleString()} <span className="text-xs font-normal text-gray-400">تومان</span></td>
+                        <td className="p-5 text-sm text-gray-800">{date}</td>
+                        <td className="p-5 font-mono text-xs text-gray-600">{group.id.split('-')[0].toUpperCase()}</td>
+                        <td className="p-5 font-bold text-gray-800">{groupTotal.toLocaleString()} <span className="text-xs font-normal text-gray-500">تومان</span></td>
                         <td className="p-5"><span className={`px-3 py-1.5 rounded-full text-xs font-bold ${statusInfo.color}`}>{statusInfo.text}</span></td>
                         <td className="p-5 text-center flex justify-center gap-2">
                           <button 
@@ -217,38 +217,36 @@ export default function CustomerOrdersPage() {
 
       {selectedGroup && !showRatingModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          {/* ✅ ارتفاع ثابت با h-[90vh] و ساختار ریسپانسیو */}
           <div className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in-up">
             
             <div className="bg-white px-5 py-3 border-b flex justify-between items-center z-10 shrink-0 shadow-sm">
               <div>
                 <h3 className="font-bold text-lg text-gray-800">فاکتور خرید</h3>
-                <div className="flex items-center gap-2 text-xs text-gray-500 font-mono mt-0.5">
-                  <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-700">کد: {selectedGroup.id.split('-')[0].toUpperCase()}</span>
+                <div className="flex items-center gap-2 text-xs text-gray-600 font-mono mt-0.5">
+                  <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-800">کد: {selectedGroup.id.split('-')[0].toUpperCase()}</span>
                 </div>
               </div>
-              <button onClick={() => setSelectedGroup(null)} className="text-gray-400 hover:text-red-500 bg-gray-50 p-2 rounded-full transition-colors">
+              <button onClick={() => setSelectedGroup(null)} className="text-gray-500 hover:text-red-500 bg-gray-50 p-2 rounded-full transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             
-            {/* ✅ در موبایل کل این بخش اسکرول می‌شود تا فوتر دیده شود */}
             <div className="flex flex-col md:flex-row flex-grow overflow-y-auto md:overflow-hidden bg-gray-50">
               
               <div className="w-full md:w-2/3 p-4 md:p-6 md:overflow-y-auto space-y-4 shrink-0 md:shrink">
                 {selectedGroup.orders.map((order: any) => (
-                  <div key={order.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-                    <div className="bg-gray-50/80 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <div key={order.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                       <span className="font-bold text-gray-800 text-sm">{order.stores?.name}</span>
                     </div>
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-gray-100">
                       {order.order_items.map((item: any) => (
                         <div key={item.id} className="p-4 flex gap-4">
                           <div className="flex-grow">
                             <h4 className={`font-bold text-sm ${item.item_status === 'out_of_stock' ? 'text-red-500 line-through' : 'text-gray-800'}`}>{item.product_title}</h4>
                             {item.item_status === 'out_of_stock' && <span className="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded">ناموجود</span>}
                           </div>
-                          <span className="font-bold text-sm">{item.total_price.toLocaleString()}</span>
+                          <span className="font-bold text-sm text-gray-800">{item.total_price.toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
@@ -256,16 +254,16 @@ export default function CustomerOrdersPage() {
                 ))}
               </div>
 
-              <div className="w-full md:w-1/3 bg-white border-t md:border-t-0 md:border-r border-gray-100 p-6 flex flex-col justify-between shrink-0 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] md:overflow-y-auto">
+              <div className="w-full md:w-1/3 bg-white border-t md:border-t-0 md:border-r border-gray-200 p-6 flex flex-col justify-between shrink-0 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] md:overflow-y-auto">
                 <div>
                   <h4 className="font-bold text-gray-800 text-lg mb-4 border-b pb-3">خلاصه پرداخت</h4>
                   <div className="space-y-4">
-                    <div className="flex justify-between text-sm text-gray-600">
+                    <div className="flex justify-between text-sm text-gray-700">
                       <span>مبلغ کالاها:</span>
                       <span className="font-bold text-gray-800">{pureProductsTotal.toLocaleString()}</span>
                     </div>
                     {totalShippingCost > 0 && (
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-gray-700">
                         <span>هزینه ارسال:</span>
                         <span className="font-bold text-orange-600">{totalShippingCost.toLocaleString()}</span>
                       </div>
@@ -278,8 +276,8 @@ export default function CustomerOrdersPage() {
                   </div>
 
                   {selectedGroup.status === 'delivered' && selectedGroup.orders[0].courier && (
-                    <div className="mt-6 border-t pt-4">
-                      <div className="bg-indigo-50 text-indigo-800 p-3 rounded-xl text-xs mb-4 border border-indigo-100 flex items-center gap-2">
+                    <div className="mt-6 border-t border-gray-200 pt-4">
+                      <div className="bg-indigo-50 text-indigo-800 p-3 rounded-xl text-xs mb-4 border border-indigo-100 flex items-center gap-2 font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                         این سفارش توسط پیک <strong>{selectedGroup.orders[0].courier.full_name}</strong> تحویل داده شد.
                       </div>
@@ -296,13 +294,13 @@ export default function CustomerOrdersPage() {
                               </button>
                             ))}
                           </div>
-                          <textarea value={courierComment} onChange={(e) => setCourierComment(e.target.value)} rows={2} placeholder="نظر خود درباره پیک (اختیاری)..." className="w-full text-xs p-2 rounded-lg border border-gray-200 outline-none mb-2 resize-none" />
+                          <textarea value={courierComment} onChange={(e) => setCourierComment(e.target.value)} rows={2} placeholder="نظر خود درباره پیک (اختیاری)..." className="w-full text-xs p-2 rounded-lg border border-gray-300 outline-none mb-2 resize-none text-gray-800" />
                           <button onClick={handleSubmitCourierRating} disabled={submittingRating} className="w-full bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">
                             {submittingRating ? 'در حال ثبت...' : 'ثبت امتیاز'}
                           </button>
                         </div>
                       ) : (
-                        <div className="text-xs text-green-700 font-bold bg-green-50 p-2 rounded-lg text-center">
+                        <div className="text-xs text-green-700 font-bold bg-green-50 p-2 rounded-lg text-center border border-green-200">
                           شما به این پیک امتیاز {selectedGroup.orders[0].courier_rating} ستاره داده‌اید.
                         </div>
                       )}
@@ -310,13 +308,21 @@ export default function CustomerOrdersPage() {
                   )}
                 </div>
 
-                <div className="pt-6 border-t border-gray-100 mt-6">
+                <div className="pt-6 border-t border-gray-200 mt-6">
                   <div className="flex justify-between items-center mb-6">
                     <span className="font-bold text-gray-800">مبلغ کل:</span>
-                    <span className="font-black text-2xl text-indigo-600">{finalTotal.toLocaleString()} <span className="text-xs font-normal text-gray-500">تومان</span></span>
+                    <span className="font-black text-2xl text-indigo-600">{finalTotal.toLocaleString()} <span className="text-xs font-normal text-gray-600">تومان</span></span>
                   </div>
+                  
+                  {/* ✅ دکمه پرداخت اضافه شد */}
+                  {selectedGroup.status === 'pending_payment' && (
+                    <Link href={`/payment/group/${selectedGroup.id}`} className="w-full block text-center bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-md">
+                      پرداخت فاکتور
+                    </Link>
+                  )}
+                  
                   {selectedGroup.status === 'shipped' && (
-                    <button onClick={handleConfirmReceipt} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-teal-700 transition-colors">✓ تأیید دریافت</button>
+                    <button onClick={handleConfirmReceipt} className="w-full bg-teal-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-teal-700 transition-colors shadow-md">✓ تأیید دریافت</button>
                   )}
                 </div>
               </div>
@@ -339,13 +345,13 @@ export default function CustomerOrdersPage() {
             <div className="p-6">
               {selectedGroup.orders[0].courier ? (
                 <>
-                  <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl mb-6">
+                  <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl mb-6 border border-gray-100">
                     <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-black">
                       {selectedGroup.orders[0].courier.full_name?.charAt(0) || 'پ'}
                     </div>
                     <div>
                       <p className="font-bold text-gray-800 text-sm">{selectedGroup.orders[0].courier.full_name}</p>
-                      <p className="text-xs text-gray-500">پیک ارسال سفارش شما</p>
+                      <p className="text-xs text-gray-600">پیک ارسال سفارش شما</p>
                     </div>
                   </div>
 
@@ -364,7 +370,7 @@ export default function CustomerOrdersPage() {
                     onChange={(e) => setCourierComment(e.target.value)} 
                     rows={2} 
                     placeholder="نظر شما درباره پیک (اختیاری)..." 
-                    className="w-full text-sm p-3 rounded-xl border border-gray-200 outline-none mb-4 resize-none focus:ring-2 focus:ring-indigo-500" 
+                    className="w-full text-sm p-3 rounded-xl border border-gray-300 outline-none mb-4 resize-none focus:ring-2 focus:ring-indigo-500 text-gray-800" 
                   />
                   
                   <div className="flex gap-2">
@@ -377,7 +383,7 @@ export default function CustomerOrdersPage() {
                         setSelectedGroup(null);
                         fetchMyOrders();
                       }} 
-                      className="px-6 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                      className="px-6 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
                     >
                       بعداً
                     </button>
@@ -385,7 +391,7 @@ export default function CustomerOrdersPage() {
                 </>
               ) : (
                 <div className="text-center">
-                  <p className="text-gray-600 mb-6">پیکی برای این سفارش ثبت نشده است.</p>
+                  <p className="text-gray-700 mb-6">پیکی برای این سفارش ثبت نشده است.</p>
                   <button 
                     onClick={() => { setShowRatingModal(false); setSelectedGroup(null); fetchMyOrders(); }} 
                     className="w-full bg-gray-800 text-white py-3 rounded-xl font-bold hover:bg-black transition-colors"
