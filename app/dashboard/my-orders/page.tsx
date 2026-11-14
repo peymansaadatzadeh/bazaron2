@@ -65,7 +65,6 @@ export default function CustomerOrdersPage() {
 
       setGroupedOrders(Object.values(groups))
       
-      // به‌روزرسانی مودال باز (اگر باز باشد)
       if (selectedGroup) {
         const updatedGroup = Object.values(groups).find((g: any) => g.id === selectedGroup.id)
         if (updatedGroup) setSelectedGroup(updatedGroup)
@@ -90,10 +89,9 @@ export default function CustomerOrdersPage() {
     setProcessingItem(item.id)
     
     try {
-      // 1. تغییر وضعیت محصول به ناموجود تا از فاکتور کسر شود
-      await supabase.from('order_items').update({ item_status: 'out_of_stock', price_changed: false }).eq('id', item.id)
+      // ✅ تغییر وضعیت به "حذف شده توسط مشتری" (نه ناموجود)
+      await supabase.from('order_items').update({ item_status: 'removed_by_customer', price_changed: false }).eq('id', item.id)
 
-      // 2. محاسبه مجدد مبلغ فاکتور مربوط به این غرفه
       const { data: items } = await supabase.from('order_items').select('*').eq('order_id', orderId)
       if (items) {
         let newSubtotal = 0
@@ -199,7 +197,7 @@ export default function CustomerOrdersPage() {
       totalShippingCost += (order.shipping_cost || 0)
       order.order_items.forEach((item: any) => {
         if (item.item_status === 'available') pureProductsTotal += item.total_price
-        else if (item.item_status === 'out_of_stock') deductedAmount += item.total_price;
+        else if (item.item_status === 'out_of_stock' || item.item_status === 'removed_by_customer') deductedAmount += item.total_price;
       })
     })
   }
@@ -302,56 +300,64 @@ export default function CustomerOrdersPage() {
                       <span className="font-bold text-gray-800 text-sm">{order.stores?.name}</span>
                     </div>
                     <div className="divide-y divide-gray-100">
-                      {order.order_items.map((item: any) => (
-                        <div key={item.id} className={`p-4 flex gap-4 ${item.item_status === 'out_of_stock' ? 'bg-red-50/30' : ''}`}>
-                          
-                          {/* ✅ نمایش عکس محصول */}
-                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200">
-                            {item.products?.image_url ? (
-                              <img src={item.products.image_url} alt={item.product_title} className={`w-full h-full object-cover ${item.item_status === 'out_of_stock' ? 'grayscale opacity-50' : ''}`} />
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 m-auto mt-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            )}
-                          </div>
+                      {order.order_items.map((item: any) => {
+                        const isOutOfStock = item.item_status === 'out_of_stock';
+                        const isRemovedByCustomer = item.item_status === 'removed_by_customer';
+                        const isUnavailable = isOutOfStock || isRemovedByCustomer;
 
-                          <div className="flex-grow">
-                            <h4 className={`font-bold text-sm ${item.item_status === 'out_of_stock' ? 'text-red-500 line-through' : 'text-gray-800'}`}>{item.product_title}</h4>
+                        return (
+                          <div key={item.id} className={`p-4 flex gap-4 ${isUnavailable ? 'bg-red-50/30' : ''}`}>
                             
-                            {item.item_status === 'out_of_stock' && (
-                              <span className="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded mt-1 inline-block">ناموجود / حذف شده</span>
-                            )}
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200">
+                              {item.products?.image_url ? (
+                                <img src={item.products.image_url} alt={item.product_title} className={`w-full h-full object-cover ${isUnavailable ? 'grayscale opacity-50' : ''}`} />
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 m-auto mt-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                              )}
+                            </div>
 
-                            {/* ✅ هشدار تغییر قیمت و دکمه‌های تایید/حذف */}
-                            {item.price_changed && item.item_status === 'available' && (
-                              <div className="mt-2 bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700">
-                                <p className="font-bold mb-1">قیمت این محصول توسط ادمین تغییر کرده است.</p>
-                                <p className="mb-2">قیمت قبلی: <del>{item.old_unit_price?.toLocaleString()}</del> | قیمت جدید: <strong className="text-red-800">{item.unit_price.toLocaleString()}</strong></p>
-                                <div className="flex gap-2">
-                                  <button 
-                                    onClick={() => handleApprovePrice(item.id)} 
-                                    disabled={processingItem === item.id}
-                                    className="bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition-colors flex-1 md:flex-none"
-                                  >
-                                    {processingItem === item.id ? '...' : 'تایید قیمت جدید'}
-                                  </button>
-                                  <button 
-                                    onClick={() => handleRemoveItem(order.id, item)} 
-                                    disabled={processingItem === item.id}
-                                    className="bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-red-700 transition-colors flex-1 md:flex-none"
-                                  >
-                                    {processingItem === item.id ? '...' : 'حذف از فاکتور'}
-                                  </button>
+                            <div className="flex-grow">
+                              <h4 className={`font-bold text-sm ${isUnavailable ? 'text-red-500 line-through' : 'text-gray-800'}`}>{item.product_title}</h4>
+                              
+                              {/* ✅ نمایش متناسب با نوع حذف */}
+                              {isOutOfStock && (
+                                <span className="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded mt-1 inline-block">حذف به دلیل نبود موجودی</span>
+                              )}
+                              {isRemovedByCustomer && (
+                                <span className="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded mt-1 inline-block">حذف به دلیل تغییر قیمت</span>
+                              )}
+
+                              {item.price_changed && item.item_status === 'available' && (
+                                <div className="mt-2 bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700">
+                                  <p className="font-bold mb-1">قیمت این محصول توسط ادمین تغییر کرده است.</p>
+                                  <p className="mb-2">قیمت قبلی: <del>{item.old_unit_price?.toLocaleString()}</del> | قیمت جدید: <strong className="text-red-800">{item.unit_price.toLocaleString()}</strong></p>
+                                  <div className="flex gap-2">
+                                    <button 
+                                      onClick={() => handleApprovePrice(item.id)} 
+                                      disabled={processingItem === item.id}
+                                      className="bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition-colors flex-1 md:flex-none"
+                                    >
+                                      {processingItem === item.id ? '...' : 'تایید قیمت جدید'}
+                                    </button>
+                                    <button 
+                                      onClick={() => handleRemoveItem(order.id, item)} 
+                                      disabled={processingItem === item.id}
+                                      className="bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-red-700 transition-colors flex-1 md:flex-none"
+                                    >
+                                      {processingItem === item.id ? '...' : 'حذف از فاکتور'}
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
+                              )}
+                            </div>
 
-                          <div className="flex flex-col items-end justify-between shrink-0">
-                            <span className="font-bold text-sm text-gray-800">{item.total_price.toLocaleString()}</span>
-                            <span className="text-xs text-gray-500">{item.quantity} عدد</span>
+                            <div className="flex flex-col items-end justify-between shrink-0">
+                              <span className={`font-bold text-sm ${isUnavailable ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{item.total_price.toLocaleString()}</span>
+                              <span className="text-xs text-gray-500">{item.quantity} عدد</span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 ))}
