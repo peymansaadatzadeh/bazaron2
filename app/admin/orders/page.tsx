@@ -27,9 +27,9 @@ function AdminOrdersContent() {
   const [selectedGroup, setSelectedGroup] = useState<any[] | null>(null)
   
   const [selectedCourierId, setSelectedCourierId] = useState<string>('')
-  const [editedPrices, setEditedPrices] = useState<{ [key: string]: number }>({})
+  // ✅ قیمت‌ها به صورت رشته ذخیره می‌شوند
+  const [editedPrices, setEditedPrices] = useState<{ [key: string]: string }>({})
 
-  // ✅ استیت‌های مربوط به تغییر پیک
   const [showReassignModal, setShowReassignModal] = useState(false)
   const [newCourierId, setNewCourierId] = useState('')
   const [reassigning, setReassigning] = useState(false)
@@ -88,7 +88,8 @@ function AdminOrdersContent() {
       let availableItemsSum = 0
       order.order_items.forEach((item: any) => {
         if (item.item_status === 'available') {
-          const finalPrice = editedPrices[item.id] !== undefined ? editedPrices[item.id] : item.unit_price;
+          const priceStr = editedPrices[item.id] !== undefined ? editedPrices[item.id] : String(item.unit_price)
+          const finalPrice = Number(priceStr) || 0
           availableItemsSum += (finalPrice * item.quantity);
         }
       })
@@ -103,7 +104,8 @@ function AdminOrdersContent() {
         let newSubtotal = 0
         for (const item of order.order_items) {
           if (item.item_status === 'available') {
-            const finalUnitPrice = editedPrices[item.id] !== undefined ? editedPrices[item.id] : item.unit_price;
+            const finalPriceStr = editedPrices[item.id] !== undefined ? editedPrices[item.id] : String(item.unit_price)
+            const finalUnitPrice = Number(finalPriceStr) || 0
             const priceChanged = finalUnitPrice !== item.unit_price;
             const newTotalPrice = finalUnitPrice * item.quantity;
             
@@ -170,7 +172,6 @@ function AdminOrdersContent() {
     }
   }
 
-  // ✅ تابع تغییر پیک
   const handleReassignCourier = async () => {
     if (!selectedGroup || !newCourierId) {
       alert('لطفاً پیک جدید را انتخاب کنید.')
@@ -322,7 +323,7 @@ function AdminOrdersContent() {
       {selectedGroup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in-up">
-            <div className="bg-white p-5 border-b flex justify-between items-center z-10">
+            <div className="bg-white p-5 border-b flex justify-between items-center z-10 shrink-0">
               <div>
                 <h3 className="font-bold text-lg text-gray-800">جزئیات فاکتور</h3>
                 <div className="flex items-center gap-3 text-xs text-gray-500 font-mono mt-1">
@@ -334,7 +335,8 @@ function AdminOrdersContent() {
               </button>
             </div>
             
-            <div className="p-4 overflow-y-auto space-y-4 bg-gray-50">
+            {/* ✅ این div مسئول اسکرول است */}
+            <div className="p-4 overflow-y-auto overscroll-contain space-y-4 bg-gray-50 flex-grow">
               {(activeTab === 'delivered' || selectedGroup[0].courier_id) && selectedGroup[0].courier && (
                 <div className="bg-blue-50 text-blue-800 border border-blue-200 p-4 rounded-2xl text-sm mb-4">
                   <div className="flex justify-between items-start">
@@ -345,7 +347,6 @@ function AdminOrdersContent() {
                       </h4>
                       <p>نام پیک: <strong>{selectedGroup[0].courier?.full_name}</strong> | تلفن: <strong>{selectedGroup[0].courier?.phone_number}</strong></p>
                     </div>
-                    {/* ✅ دکمه تغییر پیک - فقط اگر تحویل داده نشده باشد */}
                     {selectedGroup[0].status === 'shipped' && (
                       <button 
                         onClick={() => { setShowReassignModal(true); setNewCourierId(''); }}
@@ -394,8 +395,8 @@ function AdminOrdersContent() {
                               <input 
                                 type="number" 
                                 value={editedPrices[item.id] !== undefined ? editedPrices[item.id] : item.unit_price}
-                                onChange={(e) => setEditedPrices({ ...editedPrices, [item.id]: Number(e.target.value) })}
-                                className={`w-full text-left font-bold text-sm border rounded-lg px-2 py-1 outline-none transition-colors ${editedPrices[item.id] !== undefined && editedPrices[item.id] !== item.unit_price ? 'border-red-400 text-red-600 bg-red-50' : 'border-gray-200 text-gray-700'}`}
+                                onChange={(e) => setEditedPrices({ ...editedPrices, [item.id]: e.target.value })}
+                                className={`w-full text-left font-bold text-sm border rounded-lg px-2 py-1 outline-none transition-colors ${editedPrices[item.id] !== undefined && editedPrices[item.id] !== String(item.unit_price) ? 'border-red-400 text-red-600 bg-red-50' : 'border-gray-200 text-gray-700'}`}
                                 dir="ltr"
                               />
                             </div>
@@ -424,7 +425,7 @@ function AdminOrdersContent() {
               ))}
             </div>
 
-            <div className="p-5 bg-white border-t flex flex-col sm:flex-row justify-between items-center gap-4 z-10">
+            <div className="p-5 bg-white border-t flex flex-col sm:flex-row justify-between items-center gap-4 z-10 shrink-0">
               <div className="text-lg font-black text-indigo-600 w-full sm:w-auto text-center sm:text-right">
                 مبلغ کل: {calculateDynamicTotal().toLocaleString()} تومان
               </div>
@@ -467,7 +468,6 @@ function AdminOrdersContent() {
         </div>
       )}
 
-      {/* ✅ مودال تغییر پیک */}
       {showReassignModal && selectedGroup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up">
