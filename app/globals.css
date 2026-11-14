@@ -24,3 +24,38 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ اصلاح کنتراست و خوانایی متن‌ها در کل سایت */
+body {
+  color: #1f2937; /* text-gray-800 */
+}
+
+/* تیره‌تر کردن نوشته‌های خاکستری برای خوانایی بهتر */
+.text-gray-400 {
+  color: #6b7280 !important; /* تبدیل به text-gray-500 */
+}
+
+.text-gray-500 {
+  color: #4b5563 !important; /* تبدیل به text-gray-600 */
+}
+
+/* خوانایی بهتر در فرم‌ها */
+label {
+  color: #111827 !important; /* text-gray-900 */
+  font-weight: 700;
+}
+
+input, textarea, select {
+  color: #111827 !important;
+}
+
+/* رنگ Placeholder ها در فرم‌ها */
+input::placeholder, textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
