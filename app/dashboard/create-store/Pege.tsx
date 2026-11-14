@@ -14,3 +14,4 @@ const CreateStoreForm = dynamic(() => import('./CreateStoreForm'), {
 export default function CreateStorePage() {
   return <CreateStoreForm />
 }
+
