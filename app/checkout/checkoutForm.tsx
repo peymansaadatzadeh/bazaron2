@@ -327,7 +327,8 @@ export default function UnifiedCheckoutPage() {
           </form>
         </div>
 
-        <div className="w-full md:w-1/3 bg-white p-6 rounded-3xl shadow-sm border border-gray-100 h-fit sticky top-28">
+        {/* ✅ استایل اصلاح شده برای موبایل (حذف sticky در موبایل) */}
+        <div className="w-full md:w-1/3 bg-white p-6 rounded-3xl shadow-sm border border-gray-100 h-fit md:sticky md:top-28 mt-6 md:mt-0">
           <h2 className="text-xl font-bold mb-4 border-b pb-2 text-gray-800">خلاصه فاکتور</h2>
           <div className="text-sm text-gray-500 mb-4">تعداد غرفه‌ها: {Object.keys(cart).length}</div>
           
