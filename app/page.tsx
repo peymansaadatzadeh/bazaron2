@@ -35,7 +35,6 @@ export default function HomePage() {
     const fetchData = async () => {
       const storeFields = 'id, name, logo_url, discount_percentage, discount_expires_at, discount_category'
       
-      // ✅ اضافه شدن .gt('stock', 0) برای حذف محصولات ناموجود
       const { data: latest } = await supabase.from('products').select(`*, stores(${storeFields})`).eq('status', 'active').gt('stock', 0).order('created_at', { ascending: false }).limit(10)
       if (latest) setLatestProducts(latest)
 
@@ -93,34 +92,34 @@ export default function HomePage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+        
+        {/* ✅ بخش جدیدترین محصولات - تبدیل شده به گرید */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">جدیدترین محصولات</h2><p className="text-gray-500 text-sm mt-1">تازه‌ترین‌ها از غرفه‌های مختلف</p></div>
             <Link href="/products" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
-          <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-4">
             {latestProducts.map(product => (
-              <div key={product.id} className="w-[180px] sm:w-[220px] shrink-0 snap-start">
-                <ProductCard product={product} />
-              </div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </section>
 
+        {/* ✅ بخش پرفروش‌ترین‌ها - تبدیل شده به گرید */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">پرفروش‌ترین‌ها</h2><p className="text-gray-500 text-sm mt-1">محصولاتی که بیشترین استقبال را داشته‌اند</p></div>
             <Link href="/products?sort=best" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
-          <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-4">
             {bestSellers.map(product => (
-              <div key={product.id} className="w-[180px] sm:w-[220px] shrink-0 snap-start">
-                <ProductCard product={product} />
-              </div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </section>
 
+        {/* بخش غرفه‌های برتر - همچنان اسکرول افقی */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">غرفه‌های برتر</h2><p className="text-gray-500 text-sm mt-1">با بالاترین امتیاز از طرف خریداران</p></div>
@@ -129,6 +128,7 @@ export default function HomePage() {
           <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide">{topStores.map(store => <StoreCard key={store.id} store={store} avgRating={store.avgRating} />)}</div>
         </section>
 
+        {/* بخش جدیدترین غرفه‌ها - همچنان اسکرول افقی */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">جدیدترین غرفه‌ها</h2><p className="text-gray-500 text-sm mt-1">به تازگی به بازار ما پیوسته‌اند</p></div>
