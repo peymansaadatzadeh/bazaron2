@@ -129,8 +129,8 @@ export default function ProductsPage() {
 
       const { data: newProduct, error: productError } = await supabase.from('products').insert([{
         store_id: storeId, title, description, 
-        price: parsePrice(price), // ✅ تبدیل کاما به عدد
-        discount_price: discountPrice ? parsePrice(discountPrice) : null, // ✅ تبدیل کاما به عدد
+        price: parsePrice(price),
+        discount_price: discountPrice ? parsePrice(discountPrice) : null,
         stock: Number(stock), image_url: mainImageUrl, category, size, color,
         contact_phone: contactPhone, contact_email: contactEmail, 
         status: 'pending_approval'
@@ -162,8 +162,8 @@ export default function ProductsPage() {
   const openEditModal = (product: any) => {
     setEditingProduct(product)
     setEditTitle(product.title)
-    setEditPrice(formatPrice(product.price)) // ✅ نمایش با کاما
-    setEditDiscountPrice(product.discount_price ? formatPrice(product.discount_price) : '') // ✅ نمایش با کاما
+    setEditPrice(formatPrice(product.price))
+    setEditDiscountPrice(product.discount_price ? formatPrice(product.discount_price) : '')
     setEditStock(product.stock)
     setEditDescription(product.description || '')
     setEditSize(product.size || '')
@@ -222,13 +222,12 @@ export default function ProductsPage() {
       }
 
       const mainImageUrl = finalImageUrls.length > 0 ? finalImageUrls[0] : null
-
       const newStatus = 'pending_approval'
 
       const { error } = await supabase.from('products').update({
         title: editTitle, 
-        price: parsePrice(editPrice), // ✅ تبدیل کاما به عدد
-        discount_price: editDiscountPrice ? parsePrice(editDiscountPrice) : null, // ✅ تبدیل کاما به عدد
+        price: parsePrice(editPrice),
+        discount_price: editDiscountPrice ? parsePrice(editDiscountPrice) : null,
         stock: Number(editStock), description: editDescription, size: editSize, color: editColor,
         image_url: mainImageUrl,
         status: newStatus,
@@ -376,15 +375,22 @@ export default function ProductsPage() {
                     )}
 
                     <div className={`flex flex-col h-full transition-opacity duration-300 ${isProcessing ? 'opacity-30' : 'opacity-100'}`}>
-                      <div className="absolute top-2 left-2 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEditModal(product)} disabled={isProcessing} className="bg-white text-blue-600 p-1.5 rounded-lg shadow-sm hover:bg-blue-50 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                        <button onClick={() => handleDeleteProduct(product.id)} disabled={isProcessing} className="bg-white text-red-600 p-1.5 rounded-lg shadow-sm hover:bg-red-50 disabled:opacity-50"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                      
+                      {/* ✅ اصلاح باگ: دکمه‌ها در موبایل همیشه دیده می‌شوند و در دسکتاپ با هاور */}
+                      <div className="absolute top-2 left-2 flex gap-1 z-20 transition-opacity duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+                        <button onClick={() => openEditModal(product)} disabled={isProcessing} className="bg-white text-blue-600 p-1.5 rounded-lg shadow-sm hover:bg-blue-50 disabled:opacity-50 border border-gray-100" title="ویرایش محصول">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                        <button onClick={() => handleDeleteProduct(product.id)} disabled={isProcessing} className="bg-white text-red-600 p-1.5 rounded-lg shadow-sm hover:bg-red-50 disabled:opacity-50 border border-gray-100" title="حذف محصول">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
                       </div>
+
                       <div className="h-32 bg-white relative border-b border-gray-200 overflow-hidden">
                         {product.image_url ? <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" /> : <div className="flex h-full items-center justify-center text-gray-400 text-xs">بدون عکس</div>}
                       </div>
                       <div className="p-3 flex-grow flex flex-col justify-between">
-                        <h4 className="font-bold text-gray-800 text-sm truncate">{product.title}</h4>
+                        <h4 className="font-bold text-gray-800 text-sm truncate pr-16">{product.title}</h4>
                         
                         <div className="mt-1 mb-2">
                           {product.status === 'pending_approval' && (
