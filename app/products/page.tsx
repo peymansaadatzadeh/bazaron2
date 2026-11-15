@@ -64,7 +64,6 @@ function ProductsContent() {
     const from = reset ? 0 : page * ITEMS_PER_PAGE
     const to = from + ITEMS_PER_PAGE - 1
 
-    // ✅ اضافه شدن .gt('stock', 0) برای حذف محصولات ناموجود
     let query = supabase
       .from('products')
       .select('*, stores(name, discount_percentage, discount_expires_at, discount_category), reviews(rating, status)')
@@ -157,7 +156,8 @@ function ProductsContent() {
           <div className="bg-white p-12 text-center rounded-3xl shadow-sm border border-gray-100 text-gray-500 font-bold">هیچ محصولی با این مشخصات یافت نشد.</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* ✅ تغییر کلاس گرید به دو ستونه در موبایل */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
               {products.map((product) => (
                 <ProductCard 
                   key={product.id} 
