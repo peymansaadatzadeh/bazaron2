@@ -10,6 +10,7 @@ export default function CustomerOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [selectedGroup, setSelectedGroup] = useState<any>(null)
   const [processingItem, setProcessingItem] = useState<string | null>(null)
+  const [removeError, setRemoveError] = useState('') // ✅ استیت برای نمایش خطا
   
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [courierRating, setCourierRating] = useState(0)
@@ -70,8 +71,9 @@ export default function CustomerOrdersPage() {
 
   const handleApprovePrice = async (itemId: string) => {
     setProcessingItem(itemId)
+    setRemoveError('')
     const { error } = await supabase.from('order_items').update({ price_changed: false }).eq('id', itemId)
-    if (error) alert('خطا در تایید قیمت: ' + error.message)
+    if (error) setRemoveError('خطا در تایید قیمت: ' + error.message)
     else await fetchMyOrders()
     setProcessingItem(null)
   }
@@ -79,18 +81,22 @@ export default function CustomerOrdersPage() {
   const handleRemoveItem = async (item: any) => {
     if (!confirm('آیا از حذف این محصول از فاکتور مطمئن هستید؟')) return
     setProcessingItem(item.id)
+    setRemoveError('')
     
     try {
-      // ✅ فراخوانی تابع دیتابیس برای حذف محصول و محاسبه مجدد
+      // ✅ فراخوانی تابع دیتابیس
       const { error } = await supabase.rpc('remove_customer_item', {
         p_item_id: item.id
       })
 
-      if (error) throw new Error(`خطا در حذف محصول: ${error.message}`)
+      if (error) {
+        throw new Error(`خطای دیتابیس: ${error.message}`)
+      }
       
       await fetchMyOrders()
     } catch (error: any) {
-      alert(error.message)
+      console.error("خطای حذف:", error)
+      setRemoveError(error.message || "خطای ناشناخته در حذف محصول")
     } finally {
       setProcessingItem(null)
     }
@@ -227,6 +233,7 @@ export default function CustomerOrdersPage() {
                               setSelectedGroup(group); 
                               setCourierRating(group.orders[0].courier_rating || 0);
                               setCourierComment(group.orders[0].courier_comment || '');
+                              setRemoveError('');
                             }}
                             className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
                               isPendingPayment ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm' : 
@@ -267,6 +274,15 @@ export default function CustomerOrdersPage() {
             <div className="flex flex-col md:flex-row flex-grow overflow-y-auto md:overflow-hidden bg-gray-50">
               
               <div className="w-full md:w-2/3 p-4 md:p-6 md:overflow-y-auto space-y-4 shrink-0 md:shrink">
+                
+                {/* ✅ نمایش باکس خطا در صورت بروز مشکل */}
+                {removeError && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4" role="alert">
+                    <strong className="font-bold">خطا: </strong>
+                    <span className="block sm:inline">{removeError}</span>
+                  </div>
+                )}
+
                 {selectedGroup.orders.map((order: any) => (
                   <div key={order.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
