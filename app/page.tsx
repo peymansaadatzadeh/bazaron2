@@ -93,7 +93,6 @@ export default function HomePage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
         
-        {/* ✅ جدیدترین محصولات */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">جدیدترین محصولات</h2><p className="text-gray-500 text-sm mt-1">تازه‌ترین‌ها از غرفه‌های مختلف</p></div>
@@ -102,7 +101,6 @@ export default function HomePage() {
           <div className="relative">
             <div className="grid grid-rows-2 md:grid-rows-1 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
               {latestProducts.map(product => (
-                {/* ✅ عرض کارت‌ها به حالت قبلی برگشت (w-[180px] sm:w-[220px]) */}
                 <div key={product.id} className="w-[180px] sm:w-[220px] shrink-0 snap-start">
                   <ProductCard product={product} />
                 </div>
@@ -115,7 +113,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ✅ پرفروش‌ترین‌ها */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">پرفروش‌ترین‌ها</h2><p className="text-gray-500 text-sm mt-1">محصولاتی که بیشترین استقبال را داشته‌اند</p></div>
@@ -136,7 +133,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ✅ غرفه‌های برتر */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">غرفه‌های برتر</h2><p className="text-gray-500 text-sm mt-1">با بالاترین امتیاز از طرف خریداران</p></div>
@@ -157,7 +153,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ✅ جدیدترین غرفه‌ها */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">جدیدترین غرفه‌ها</h2><p className="text-gray-500 text-sm mt-1">به تازگی به بازار ما پیوسته‌اند</p></div>
