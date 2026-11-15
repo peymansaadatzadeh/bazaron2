@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// ✅ آپدیت شد به حروف کوچک
 import Navbar from "./components/navbar";
+import BottomNav from "./components/bottomNav"; // ✅ ایمپورت منوی پایین
 
 export const metadata: Metadata = {
   title: "بازار شهر",
@@ -17,7 +17,13 @@ export default function RootLayout({
     <html lang="fa" dir="rtl">
       <body className="font-sans antialiased bg-gray-50">
         <Navbar />
-        {children}
+        
+        {/* ✅ اضافه کردن padding-bottom برای موبایل تا منوی پایین روی محتوا نیفتد */}
+        <div className="pb-16 md:pb-0">
+          {children}
+        </div>
+
+        <BottomNav />
       </body>
     </html>
   );
