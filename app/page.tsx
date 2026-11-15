@@ -93,63 +93,91 @@ export default function HomePage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
         
-        {/* ✅ جدیدترین محصولات (۲ ردیف اسکرول افقی) */}
+        {/* ✅ جدیدترین محصولات */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">جدیدترین محصولات</h2><p className="text-gray-500 text-sm mt-1">تازه‌ترین‌ها از غرفه‌های مختلف</p></div>
             <Link href="/products" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
-          <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-            {latestProducts.map(product => (
-              <div key={product.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
-                <ProductCard product={product} />
-              </div>
-            ))}
+          <div className="relative">
+            <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+              {latestProducts.map(product => (
+                <div key={product.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+            {/* ✅ گرادیانت و فلش نشانگر اسکرول */}
+            <div className="absolute left-0 top-0 bottom-4 w-16 bg-gradient-to-l from-transparent to-gray-50 pointer-events-none z-10"></div>
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 p-2 rounded-full shadow-md pointer-events-none animate-pulse hidden sm:block">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </div>
           </div>
         </section>
 
-        {/* ✅ پرفروش‌ترین‌ها (۲ ردیف اسکرول افقی) */}
+        {/* ✅ پرفروش‌ترین‌ها */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">پرفروش‌ترین‌ها</h2><p className="text-gray-500 text-sm mt-1">محصولاتی که بیشترین استقبال را داشته‌اند</p></div>
             <Link href="/products?sort=best" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
-          <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-            {bestSellers.map(product => (
-              <div key={product.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
-                <ProductCard product={product} />
-              </div>
-            ))}
+          <div className="relative">
+            <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+              {bestSellers.map(product => (
+                <div key={product.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+            {/* ✅ گرادیانت و فلش نشانگر اسکرول */}
+            <div className="absolute left-0 top-0 bottom-4 w-16 bg-gradient-to-l from-transparent to-gray-50 pointer-events-none z-10"></div>
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 p-2 rounded-full shadow-md pointer-events-none animate-pulse hidden sm:block">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </div>
           </div>
         </section>
 
-        {/* بخش غرفه‌های برتر (۲ ردیف اسکرول افقی) */}
+        {/* ✅ غرفه‌های برتر */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">غرفه‌های برتر</h2><p className="text-gray-500 text-sm mt-1">با بالاترین امتیاز از طرف خریداران</p></div>
             <Link href="/stores?sort=top" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
-          <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-            {topStores.map(store => (
-              <div key={store.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
-                <StoreCard store={store} avgRating={store.avgRating} />
-              </div>
-            ))}
+          <div className="relative">
+            <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+              {topStores.map(store => (
+                <div key={store.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
+                  <StoreCard store={store} avgRating={store.avgRating} />
+                </div>
+              ))}
+            </div>
+            {/* ✅ گرادیانت و فلش نشانگر اسکرول */}
+            <div className="absolute left-0 top-0 bottom-4 w-16 bg-gradient-to-l from-transparent to-gray-50 pointer-events-none z-10"></div>
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 p-2 rounded-full shadow-md pointer-events-none animate-pulse hidden sm:block">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </div>
           </div>
         </section>
 
-        {/* بخش جدیدترین غرفه‌ها (۲ ردیف اسکرول افقی) */}
+        {/* ✅ جدیدترین غرفه‌ها */}
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">جدیدترین غرفه‌ها</h2><p className="text-gray-500 text-sm mt-1">به تازگی به بازار ما پیوسته‌اند</p></div>
             <Link href="/stores" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
-          <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-            {newestStores.map(store => (
-              <div key={store.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
-                <StoreCard store={store} avgRating={null} />
-              </div>
-            ))}
+          <div className="relative">
+            <div className="grid grid-rows-2 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+              {newestStores.map(store => (
+                <div key={store.id} className="w-[160px] md:w-[200px] shrink-0 snap-start">
+                  <StoreCard store={store} avgRating={null} />
+                </div>
+              ))}
+            </div>
+            {/* ✅ گرادیانت و فلش نشانگر اسکرول */}
+            <div className="absolute left-0 top-0 bottom-4 w-16 bg-gradient-to-l from-transparent to-gray-50 pointer-events-none z-10"></div>
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 p-2 rounded-full shadow-md pointer-events-none animate-pulse hidden sm:block">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </div>
           </div>
         </section>
       </main>
