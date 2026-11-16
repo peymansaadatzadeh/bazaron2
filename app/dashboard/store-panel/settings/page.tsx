@@ -4,6 +4,14 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
+// ✅ تابع تبدیل اعداد فارسی و عربی به انگلیسی
+const toEnglishDigits = (str: string) => {
+  return str
+    .replace(/[۰-۹]/g, (w) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(w)))
+    .replace(/[٠-٩]/g, (w) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(w)))
+    .replace(/[^0-9]/g, ''); // فقط اعداد مجاز هستند
+};
+
 export default function StoreSettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -41,14 +49,15 @@ export default function StoreSettingsPage() {
   // تخفیف
   const [categories, setCategories] = useState<any[]>([])
   const [hasDiscount, setHasDiscount] = useState(false)
-  const [discountPercentage, setDiscountPercentage] = useState(0)
+  // ✅ استیت‌ها به صورت رشته تعریف شدند تا هنگام پاک کردن، صفر نشوند
+  const [discountPercentage, setDiscountPercentage] = useState<string>('')
   const [discountCategory, setDiscountCategory] = useState('all')
-  const [discountDays, setDiscountDays] = useState(1)
+  const [discountDays, setDiscountDays] = useState<string>('1')
 
   // تعطیلی فروشگاه
   const [isClosed, setIsClosed] = useState(false)
   const [hasClosureDuration, setHasClosureDuration] = useState(false)
-  const [closureDuration, setClosureDuration] = useState<number>(1)
+  const [closureDuration, setClosureDuration] = useState<string>('1')
   const [closureUnit, setClosureUnit] = useState<'hours' | 'days'>('days')
 
   useEffect(() => {
@@ -80,7 +89,7 @@ export default function StoreSettingsPage() {
 
         if (store.discount_percentage > 0) {
           setHasDiscount(true)
-          setDiscountPercentage(store.discount_percentage)
+          setDiscountPercentage(String(store.discount_percentage))
           setDiscountCategory(store.discount_category || 'all')
         }
 
@@ -92,11 +101,11 @@ export default function StoreSettingsPage() {
              if (diff > 0) {
                const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
                if (days >= 1) {
-                 setClosureDuration(days);
+                 setClosureDuration(String(days));
                  setClosureUnit('days');
                } else {
                  const hours = Math.ceil(diff / (1000 * 60 * 60));
-                 setClosureDuration(hours);
+                 setClosureDuration(String(hours));
                  setClosureUnit('hours');
                }
              }
@@ -155,14 +164,14 @@ export default function StoreSettingsPage() {
       }
 
       let discountExpiresAt = null
-      if (hasDiscount && discountPercentage > 0) {
+      if (hasDiscount && Number(discountPercentage) > 0) {
         const expiry = new Date()
-        expiry.setDate(expiry.getDate() + discountDays)
+        expiry.setDate(expiry.getDate() + Number(discountDays))
         discountExpiresAt = expiry.toISOString()
       }
 
       let closedUntil = null
-      if (isClosed && hasClosureDuration) {
+      if (isClosed && hasClosureDuration && Number(closureDuration) > 0) {
         const expiry = new Date()
         if (closureUnit === 'days') {
           expiry.setDate(expiry.getDate() + Number(closureDuration))
@@ -180,14 +189,13 @@ export default function StoreSettingsPage() {
         working_hours: `${startTime} - ${endTime}`,
         is_suspended: isClosed,
         closed_until: isClosed && hasClosureDuration ? closedUntil : null,
-        discount_percentage: hasDiscount ? discountPercentage : 0,
+        discount_percentage: hasDiscount ? Number(discountPercentage) : 0,
         discount_category: hasDiscount ? discountCategory : null,
         discount_expires_at: hasDiscount ? discountExpiresAt : null
       }).eq('id', storeId)
 
       if (error) throw error
 
-      // ✅ رفع باگ: آپدیت کردن استیت عکس‌ها تا صفحه عکس‌های جدید را به خاطر بسپارد
       setCurrentLogo(logoUrl)
       setCurrentCover(coverUrl)
       setLogoFile(null)
@@ -304,11 +312,25 @@ export default function StoreSettingsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold mb-1 text-indigo-900">درصد</label>
-                    <input type="number" min="1" max="99" value={discountPercentage} onChange={(e) => setDiscountPercentage(Number(e.target.value))} className="w-full bg-white px-3 py-2 rounded-xl border border-indigo-200 text-center font-bold text-indigo-700 outline-none" />
+                    {/* ✅ تغییر type به text برای جلوگیری از صفر شدن */}
+                    <input 
+                      type="text" 
+                      inputMode="numeric" 
+                      value={discountPercentage} 
+                      onChange={(e) => setDiscountPercentage(toEnglishDigits(e.target.value))} 
+                      className="w-full bg-white px-3 py-2 rounded-xl border border-indigo-200 text-center font-bold text-indigo-700 outline-none" 
+                      placeholder="مثلاً 20"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold mb-1 text-indigo-900">مدت (روز)</label>
-                    <input type="number" min="1" value={discountDays} onChange={(e) => setDiscountDays(Number(e.target.value))} className="w-full bg-white px-3 py-2 rounded-xl border border-indigo-200 text-center font-bold text-indigo-700 outline-none" />
+                    <input 
+                      type="text" 
+                      inputMode="numeric" 
+                      value={discountDays} 
+                      onChange={(e) => setDiscountDays(toEnglishDigits(e.target.value))} 
+                      className="w-full bg-white px-3 py-2 rounded-xl border border-indigo-200 text-center font-bold text-indigo-700 outline-none" 
+                    />
                   </div>
                 </div>
                 <div>
@@ -347,7 +369,14 @@ export default function StoreSettingsPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold mb-1 text-red-900">مدت زمان</label>
-                      <input type="number" min="1" value={closureDuration} onChange={(e) => setClosureDuration(Number(e.target.value))} className="w-full bg-white px-3 py-2 rounded-xl border border-red-200 text-center font-bold outline-none" />
+                      {/* ✅ تغییر type به text برای جلوگیری از صفر شدن */}
+                      <input 
+                        type="text" 
+                        inputMode="numeric" 
+                        value={closureDuration} 
+                        onChange={(e) => setClosureDuration(toEnglishDigits(e.target.value))} 
+                        className="w-full bg-white px-3 py-2 rounded-xl border border-red-200 text-center font-bold outline-none" 
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-bold mb-1 text-red-900">واحد</label>
