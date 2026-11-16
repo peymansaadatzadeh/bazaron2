@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function BottomNav() {
+// ✅ کامپوننت داخلی که هوک usePathname در آن استفاده شده است
+function BottomNavContent() {
   const pathname = usePathname()
 
   // مخفی کردن منوی پایین در پنل‌های مدیریتی
@@ -24,8 +26,8 @@ export default function BottomNav() {
   ]
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] pb-safe">
-      <div className="flex justify-around items-center h-16">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 z-[9999] shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+      <div className="flex justify-around items-center h-full">
         {menuItems.map((item) => {
           const isActive = item.href === '/' 
             ? pathname === '/' 
@@ -54,5 +56,14 @@ export default function BottomNav() {
         })}
       </div>
     </div>
+  )
+}
+
+// ✅ خروجی نهایی که کامپوننت را داخل Suspense می‌پیچد تا Vercel ارور ندهد
+export default function BottomNav() {
+  return (
+    <Suspense fallback={null}>
+      <BottomNavContent />
+    </Suspense>
   )
 }
