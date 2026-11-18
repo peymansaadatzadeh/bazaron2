@@ -29,19 +29,30 @@ export default function ProductCard({
   
   const [toast, setToast] = useState('')
   
-  // محاسبه تخفیف
+  // ✅ منطق جدید قیمت‌گذاری (تبدیل به عدد برای جلوگیری از خطا)
+  const originalPrice = Number(product.price);
+  let displayPrice = originalPrice;
   let hasDiscount = false;
-  let finalPrice = product.price;
   let discountPercent = 0;
 
-  if (currentStore && currentStore.discount_percentage > 0 && currentStore.discount_expires_at) {
+  // ۱. بررسی تخفیف سراسری فروشگاه (اولویت اول)
+  let isGlobalDiscountActive = false;
+  if (currentStore && Number(currentStore.discount_percentage) > 0 && currentStore.discount_expires_at) {
     const isActive = new Date(currentStore.discount_expires_at) > new Date();
     const isCategoryMatch = currentStore.discount_category === 'all' || currentStore.discount_category === product.category;
     if (isActive && isCategoryMatch) {
+      isGlobalDiscountActive = true;
       hasDiscount = true;
-      discountPercent = currentStore.discount_percentage;
-      finalPrice = product.price - (product.price * (discountPercent / 100));
+      discountPercent = Number(currentStore.discount_percentage);
+      displayPrice = originalPrice - (originalPrice * (discountPercent / 100));
     }
+  }
+
+  // ۲. بررسی تخفیف اختصاصی محصول (اگر تخفیف سراسری فعال نبود)
+  if (!isGlobalDiscountActive && product.discount_price && Number(product.discount_price) > 0 && Number(product.discount_price) < originalPrice) {
+    hasDiscount = true;
+    displayPrice = Number(product.discount_price);
+    discountPercent = Math.round(((originalPrice - displayPrice) / originalPrice) * 100);
   }
 
   // محاسبه امتیاز
@@ -84,7 +95,8 @@ export default function ProductCard({
       if (existingItemIndex > -1) {
         cartData[storeKey].items[existingItemIndex].quantity += 1
       } else {
-        cartData[storeKey].items.push({ id: product.id, title: product.title, price: finalPrice, quantity: 1 })
+        // ✅ قیمت نهایی (با تخفیف) در سبد خرید ذخیره می‌شود
+        cartData[storeKey].items.push({ id: product.id, title: product.title, price: displayPrice, quantity: 1 })
       }
 
       localStorage.setItem('marketplace_cart', JSON.stringify(cartData))
@@ -97,14 +109,12 @@ export default function ProductCard({
   return (
     <div className="relative w-full max-w-[250px] mx-auto group">
       
-      {/* ✅ پیام (Toast) */}
       {toast && (
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] text-white font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-xl shadow-xl whitespace-nowrap animate-fade-in text-xs md:text-sm ${toast.includes('ناموجود') ? 'bg-red-600' : 'bg-gray-900'}`}>
           {toast}
         </div>
       )}
 
-      {/* بدنه اصلی کارت */}
       <Link 
         href={`/product/${product.id}`} 
         className="block bg-white rounded-[20px] md:rounded-[28px] p-2 md:p-3 shadow-[0_2px_15px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 border border-gray-100 relative overflow-visible pb-8 md:pb-10"
@@ -113,7 +123,7 @@ export default function ProductCard({
         {/* کادر عکس */}
         <div className="relative aspect-square bg-gray-50 rounded-[14px] md:rounded-[22px] overflow-hidden w-full flex items-center justify-center">
           
-          {/* برچسب تخفیف */}
+          {/* ✅ برچسب تخفیف (حالا برای هر دو نوع تخفیف نمایش داده می‌شود) */}
           {hasDiscount && (
             <div className="absolute top-1.5 right-1.5 md:top-2.5 md:right-2.5 z-20">
               <div className="bg-[#2e7d32] text-white px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md md:rounded-lg shadow-sm">
@@ -167,7 +177,7 @@ export default function ProductCard({
           {/* ردیف پایین: ستاره + دکمه + قیمت */}
           <div className="w-full flex items-center justify-between mt-3 md:mt-5 relative">
             
-            {/* ستاره و امتیاز (سمت چپ) */}
+            {/* ستاره و امتیاز */}
             <div className="flex items-center gap-0.5 md:gap-1 flex-1 justify-start">
               {avgRating && (
                 <>
@@ -180,31 +190,22 @@ export default function ProductCard({
             {/* فضای خالی وسط برای دکمه شناور */}
             <div className="w-10 md:w-16"></div>
 
-            {/* قیمت (سمت راست) */}
+            {/* قیمت */}
             <div className="flex flex-col items-end flex-1">
+              {/* ✅ نمایش قیمت با در نظر گرفتن هر دو نوع تخفیف */}
               {hasDiscount ? (
                 <>
                   <span className="text-[10px] md:text-[12px] text-red-500 line-through font-medium">
-                    {product.price.toLocaleString()}
+                    {originalPrice.toLocaleString()}
                   </span>
                   <span className="font-black text-gray-900 text-[12px] md:text-[15px] leading-none">
-                    {finalPrice.toLocaleString()}
-                    <span className="text-[8px] md:text-[10px] font-medium text-gray-500 mr-0.5 md:mr-1">تومان</span>
-                  </span>
-                </>
-              ) : product.discount_price ? (
-                <>
-                  <span className="text-[10px] md:text-[12px] text-red-500 line-through font-medium">
-                    {product.price.toLocaleString()}
-                  </span>
-                  <span className="font-black text-gray-900 text-[12px] md:text-[15px] leading-none">
-                    {product.discount_price.toLocaleString()}
+                    {displayPrice.toLocaleString()}
                     <span className="text-[8px] md:text-[10px] font-medium text-gray-500 mr-0.5 md:mr-1">تومان</span>
                   </span>
                 </>
               ) : (
                 <span className="font-black text-gray-900 text-[12px] md:text-[15px] leading-none">
-                  {product.price.toLocaleString()}
+                  {originalPrice.toLocaleString()}
                   <span className="text-[8px] md:text-[10px] font-medium text-gray-500 mr-0.5 md:mr-1">تومان</span>
                 </span>
               )}
@@ -213,7 +214,7 @@ export default function ProductCard({
         </div>
       </Link>
 
-      {/* ✅ دکمه سبد خرید شناور (سایز کوچک‌تر در موبایل) */}
+      {/* دکمه سبد خرید شناور */}
       <button 
         onClick={handleCartClick}
         className={`absolute bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 translate-y-1/2 w-11 h-11 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(0,0,0,0.15)] md:shadow-[0_8px_25px_rgba(0,0,0,0.18)] border border-gray-100 transition-all duration-300 z-30 ${
@@ -228,7 +229,6 @@ export default function ProductCard({
         </svg>
       </button>
 
-      {/* انیمیشن برای Toast */}
       <style jsx>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translate(-50%, -30%); }

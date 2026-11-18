@@ -27,7 +27,6 @@ export default function SellerMessagesPage() {
       if (!storeData) return
       setStoreId(storeData.id)
 
-      // گرفتن پیام‌ها همراه با اطلاعات محصول
       const { data: msgsData } = await supabase
         .from('messages')
         .select('*, products(title, image_url)')
@@ -121,9 +120,11 @@ export default function SellerMessagesPage() {
   if (loading) return <div className="text-center py-20 text-gray-500">در حال بارگذاری پیام‌ها...</div>
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 h-[calc(100vh-8rem)] flex overflow-hidden">
+    /* ✅ استفاده از 100dvh برای ارتفاع دقیق در موبایل و حذف اسکرول اضافه */
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 h-[calc(100dvh-10rem)] md:h-[calc(100vh-8rem)] flex overflow-hidden flex-col md:flex-row">
       
-      <div className="w-1/3 border-l border-gray-100 flex flex-col bg-gray-50">
+      {/* ✅ لیست گفتگوها: در موبایل اگر چتی انتخاب شده باشد، مخفی می‌شود */}
+      <div className={`w-full md:w-1/3 border-l border-gray-100 flex-col bg-gray-50 ${selectedChat ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-gray-100 bg-white">
           <h2 className="font-bold text-gray-800">پیام‌های دریافتی</h2>
         </div>
@@ -146,23 +147,32 @@ export default function SellerMessagesPage() {
         </div>
       </div>
 
-      <div className="w-2/3 flex flex-col bg-white">
+      {/* ✅ صفحه چت: در موبایل اگر چتی انتخاب نشده باشد، مخفی می‌شود */}
+      <div className={`w-full md:w-2/3 flex-col bg-white ${!selectedChat ? 'hidden md:flex' : 'flex'}`}>
         {selectedChat ? (
           <>
-            <div className="p-4 border-b border-gray-100 bg-white flex items-center justify-between shadow-sm z-10">
+            <div className="p-3 md:p-4 border-b border-gray-100 bg-white flex items-center justify-between shadow-sm z-10 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-bold">
+                {/* ✅ دکمه بازگشت مخصوص موبایل */}
+                <button 
+                  onClick={() => setSelectedChat(null)} 
+                  className="md:hidden text-gray-600 bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+
+                <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 font-bold shrink-0">
                   {selectedChat.customerName.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-800">{selectedChat.customerName}</h3>
-                  <span className="text-xs text-green-500">خریدار</span>
+                  <h3 className="font-bold text-gray-800 text-sm md:text-base">{selectedChat.customerName}</h3>
+                  <span className="text-[10px] md:text-xs text-green-500">خریدار</span>
                 </div>
               </div>
               
               <button 
                 onClick={() => setSelectedChat(null)} 
-                className="text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 p-2 rounded-full transition-colors"
+                className="hidden md:flex text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 p-2 rounded-full transition-colors"
                 title="بستن گفتگو"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -174,9 +184,8 @@ export default function SellerMessagesPage() {
                 const isMe = msg.sender_id === user.id
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`max-w-[70%] p-3 rounded-2xl text-sm ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-800 border border-gray-100 shadow-sm rounded-tl-none'}`}>
+                    <div className={`max-w-[85%] md:max-w-[70%] p-3 rounded-2xl text-sm ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-800 border border-gray-100 shadow-sm rounded-tl-none'}`}>
                       
-                      {/* نمایش محصول مرتبط با پیام */}
                       {msg.products && (
                         <Link href={`/product/${msg.product_id}`} target="_blank" className={`flex items-center gap-2 p-2 rounded-lg mb-2 ${isMe ? 'bg-indigo-500/50 hover:bg-indigo-500/70' : 'bg-gray-50 hover:bg-gray-100'} transition-colors`}>
                           {msg.products.image_url && <img src={msg.products.image_url} className="w-8 h-8 rounded-md object-cover" />}
@@ -195,26 +204,27 @@ export default function SellerMessagesPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 bg-white border-t border-gray-100">
+            {/* ✅ بخش تایپ پیام (shrink-0 باعث می‌شود همیشه ثابت و قابل مشاهده بماند) */}
+            <div className="p-3 md:p-4 bg-white border-t border-gray-100 shrink-0">
               <form onSubmit={handleSendMessage} className="flex gap-2">
                 <input 
                   type="text" 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="پیام خود را بنویسید..."
-                  className="flex-grow bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="flex-grow min-w-0 bg-gray-50 border border-gray-200 px-3 md:px-4 py-2.5 md:py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 -scale-x-100" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                  ارسال
+                <button type="submit" className="bg-indigo-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center justify-center shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                  <span className="hidden md:block">ارسال</span>
                 </button>
               </form>
             </div>
           </>
         ) : (
-          <div className="flex-grow flex flex-col items-center justify-center text-gray-400 bg-gray-50">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-            <p>برای مشاهده پیام‌ها، یک گفتگو را از سمت راست انتخاب کنید.</p>
+          <div className="flex-grow flex flex-col items-center justify-center text-gray-400 bg-gray-50 p-6 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 md:h-20 md:w-20 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            <p className="text-sm md:text-base">برای مشاهده پیام‌ها، یک گفتگو را انتخاب کنید.</p>
           </div>
         )}
       </div>
