@@ -28,8 +28,12 @@ export default function BottomNav() {
     href === '/' ? pathname === '/' : pathname.startsWith(href)
   );
 
+  // محاسبه موقعیت indicator مخصوص RTL
+  // در RTL آیتم‌ها از راست به چپ چیده می‌شن، پس باید از سمت راست حساب کنیم
+  const indicatorPosition = `calc(${activeIndex} * 70px + ${activeIndex} * 12px)`;
+
   return (
-    <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[360px] max-w-[92vw]">
+    <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[360px] max-w-[92vw]" dir="rtl">
       <div className="relative h-[70px] bg-white rounded-[10px] px-5 flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
         <ul className="list-none flex justify-between w-full relative">
           {NAV_ITEMS.map(({ href, label, icon: Icon }, index) => {
@@ -85,10 +89,12 @@ export default function BottomNav() {
           <li
             className="absolute top-[-50%] w-[70px] h-[70px] rounded-full border-[6px] border-white bg-[#E0155A] transition-all duration-300 ease-out z-0 pointer-events-none shadow-[0_4px_12px_rgba(224,21,90,0.35)]"
             style={{
-              transform: `translateX(calc(${activeIndex} * 70px + ${activeIndex} * 12px + ${activeIndex > 0 ? activeIndex * 1 : 0}px))`,
+              // در RTL از right استفاده می‌کنیم
+              right: indicatorPosition,
+              left: 'auto',
             }}
           >
-            {/* منحنی‌های کناری (notch) برای پس‌زمینه سفید */}
+            {/* منحنی‌های کناری */}
             <span className="absolute top-1/2 -left-[22px] w-5 h-5 bg-transparent shadow-[1px_-10px_0_0_#ffffff] rounded-tr-[20px]" />
             <span className="absolute top-1/2 -right-[22px] w-5 h-5 bg-transparent shadow-[-1px_-10px_0_0_#ffffff] rounded-tl-[20px]" />
           </li>
