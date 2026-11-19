@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, ShoppingBag, ShoppingCart, Store, User } from 'lucide-react';
@@ -29,10 +30,18 @@ export default function BottomNav() {
     href === '/' ? pathname === '/' : pathname.startsWith(href)
   );
   const itemWidth = 100 / NAV_ITEMS.length;
+  const pos = activeIndex === -1 ? -50 : (activeIndex + 0.5) * itemWidth;
 
   return (
-    <nav className="md:hidden fixed bottom-4 inset-x-4 mx-auto max-w-md z-[9999]">
-      <ul className="relative flex h-16 rounded-xl bg-white shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
+    <nav className="md:hidden fixed bottom-4 inset-x-4 mx-auto max-w-md z-[9999] drop-shadow-[0_8px_16px_rgba(15,23,42,0.15)]">
+      <ul className="relative flex h-16">
+        {/* بدنه‌ی سفید ناوبار با چاله */}
+        <span
+          aria-hidden="true"
+          className="nav-bar-bg absolute inset-0 rounded-xl bg-white"
+          style={{ '--pos': `${pos}%` } as CSSProperties}
+        />
+
         {NAV_ITEMS.map(({ href, label, icon: Icon }, index) => {
           const isActive = index === activeIndex;
 
@@ -44,13 +53,13 @@ export default function BottomNav() {
                 className="relative flex h-full w-full flex-col items-center justify-center"
               >
                 <Icon
-                  className={`h-6 w-6 transition-all duration-500 ${
-                    isActive ? '-translate-y-8 text-white' : 'text-slate-500'
+                  className={`h-6 w-6 transition-all duration-300 ${
+                    isActive ? '-translate-y-9 text-white' : 'text-slate-500'
                   }`}
                   strokeWidth={isActive ? 2.5 : 2}
                 />
                 <span
-                  className={`absolute bottom-2 whitespace-nowrap text-[11px] font-medium text-slate-700 transition-all duration-500 ${
+                  className={`absolute bottom-2 whitespace-nowrap text-[11px] font-medium text-slate-700 transition-all duration-300 ${
                     isActive ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
                   }`}
                 >
@@ -61,10 +70,10 @@ export default function BottomNav() {
           );
         })}
 
-        {/* دایره‌ی متحرک */}
+        {/* دایره‌ی شناور */}
         <li
           aria-hidden="true"
-          className={`pointer-events-none absolute -top-8 z-0 flex h-16 justify-center transition-[inset-inline-start,opacity] duration-300 ${
+          className={`pointer-events-none absolute -top-8 z-0 flex h-14 justify-center transition-[inset-inline-start,opacity] duration-300 ${
             activeIndex === -1 ? 'opacity-0' : 'opacity-100'
           }`}
           style={{
@@ -72,7 +81,7 @@ export default function BottomNav() {
             insetInlineStart: `${Math.max(activeIndex, 0) * itemWidth}%`,
           }}
         >
-          <span className="nav-indicator relative block h-16 w-16 rounded-full bg-indigo-500" />
+          <span className="block h-14 w-14 rounded-full bg-indigo-500 shadow-lg shadow-indigo-500/40" />
         </li>
       </ul>
     </nav>
