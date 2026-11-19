@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -6,11 +5,11 @@ import { usePathname } from 'next/navigation';
 import { Home, ShoppingBag, ShoppingCart, Store, User } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/',          label: 'خانه',       icon: Home },
-  { href: '/products',  label: 'محصولات',    icon: ShoppingBag },
-  { href: '/cart',      label: 'سبد خرید',   icon: ShoppingCart },
-  { href: '/stores',    label: 'غرفه‌ها',    icon: Store },
-  { href: '/dashboard', label: 'داشبورد',    icon: User },
+  { href: '/', label: 'خانه', icon: Home },
+  { href: '/products', label: 'محصولات', icon: ShoppingBag },
+  { href: '/cart', label: 'سبد خرید', icon: ShoppingCart },
+  { href: '/stores', label: 'غرفه‌ها', icon: Store },
+  { href: '/dashboard', label: 'داشبورد', icon: User },
 ];
 
 export default function BottomNav() {
@@ -25,42 +24,57 @@ export default function BottomNav() {
     return null;
   }
 
+  // بررسی فعال بودن تب (برای مسیرهایی که زیرشاخه دارند)
+  const activeIndex = NAV_ITEMS.findIndex(({ href }) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href)
+  );
+  const itemWidth = 100 / NAV_ITEMS.length;
+
   return (
     <nav className="md:hidden fixed bottom-4 inset-x-4 mx-auto max-w-md z-[9999]">
-      <div className="bg-slate-100 rounded-[1.25rem] p-2 flex justify-around items-center shadow-[6px_6px_16px_#cbd5e1,-6px_-6px_16px_#ffffff]">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          // بررسی فعال بودن تب (برای مسیرهایی که زیرشاخه دارند)
-          const isActive = href === '/'
-            ? pathname === '/'
-            : pathname.startsWith(href);
+      <ul className="relative flex h-16 rounded-xl bg-white shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
+        {NAV_ITEMS.map(({ href, label, icon: Icon }, index) => {
+          const isActive = index === activeIndex;
 
           return (
-            <Link
-              key={href}
-              href={href}
-              aria-label={label}
-              className={`relative flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-2xl transition-all duration-300 bg-slate-100 ${
-                isActive
-                  ? 'shadow-[inset_4px_4px_8px_#cbd5e1,inset_-4px_-4px_8px_#ffffff] text-indigo-500 scale-[0.92]'
-                  : 'shadow-[4px_4px_8px_#cbd5e1,-4px_-4px_8px_#ffffff] text-slate-400 hover:text-slate-500'
-              }`}
-            >
-              <Icon
-                className="w-5 h-5"
-                strokeWidth={isActive ? 2.5 : 2}
-              />
-
-              <span className="text-[10px] leading-none font-medium whitespace-nowrap">
-                {label}
-              </span>
-
-              {isActive && (
-                <span className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pop-in" />
-              )}
-            </Link>
+            <li key={href} className="relative z-10 flex-1">
+              <Link
+                href={href}
+                aria-label={label}
+                className="relative flex h-full w-full flex-col items-center justify-center"
+              >
+                <Icon
+                  className={`h-6 w-6 transition-all duration-500 ${
+                    isActive ? '-translate-y-8 text-white' : 'text-slate-500'
+                  }`}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span
+                  className={`absolute bottom-2 whitespace-nowrap text-[11px] font-medium text-slate-700 transition-all duration-500 ${
+                    isActive ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
+                  }`}
+                >
+                  {label}
+                </span>
+              </Link>
+            </li>
           );
         })}
-      </div>
+
+        {/* دایره‌ی متحرک */}
+        <li
+          aria-hidden="true"
+          className={`pointer-events-none absolute -top-8 z-0 flex h-16 justify-center transition-[inset-inline-start,opacity] duration-300 ${
+            activeIndex === -1 ? 'opacity-0' : 'opacity-100'
+          }`}
+          style={{
+            width: `${itemWidth}%`,
+            insetInlineStart: `${Math.max(activeIndex, 0) * itemWidth}%`,
+          }}
+        >
+          <span className="nav-indicator relative block h-16 w-16 rounded-full bg-indigo-500" />
+        </li>
+      </ul>
     </nav>
   );
 }
