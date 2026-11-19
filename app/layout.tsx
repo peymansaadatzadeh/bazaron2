@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/navbar";
-import BottomNav from "./components/bottomNav"; // ✅ مسیر اصلاح شد
+import BottomNav from "./components/
+import { Suspense } from "react";
+
+<Suspense fallback={null}>
+  <BottomNav />
+</Suspense>   // ✅ مسیر اصلاح شد
 
 export const metadata: Metadata = {
   title: "بازار شهر",
