@@ -86,7 +86,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-transparent to-transparent"></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col items-center text-center">
-          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight drop-shadow-sm">به بازار <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-red-300">متل قو</span> خوش آمدید</h1>
+          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight drop-shadow-sm">به <span className="text-transparent bg-clip-text bg-gradient-to-r from-bg-rose-300 to-red-300">بازاران</span> خوش آمدید</h1>
           <p className="text-lg md:text-xl text-red-100 max-w-2xl mb-8 font-medium">جدیدترین محصولات، برترین غرفه‌ها و بهترین تجربه خرید آنلاین در شهر شما.</p>
         </div>
       </div>
