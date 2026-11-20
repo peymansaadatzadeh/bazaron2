@@ -11,24 +11,23 @@ const SingleStar = ({ size = "w-3.5 h-3.5" }: { size?: string }) => (
   </svg>
 );
 
-export default function ProductCard({ 
-  product, 
-  storeData, 
-  isFavorite = false, 
+export default function ProductCard({
+  product,
+  storeData,
+  isFavorite = false,
   onToggleFavorite,
   onAddToCart
-}: { 
-  product: any, 
-  storeData?: any, 
-  isFavorite?: boolean, 
+}: {
+  product: any,
+  storeData?: any,
+  isFavorite?: boolean,
   onToggleFavorite?: (e: React.MouseEvent, id: string) => void,
   onAddToCart?: (e: React.MouseEvent, product: any) => void
 }) {
   const currentStore = storeData || product.stores;
   const router = useRouter();
-  
   const [toast, setToast] = useState('')
-  
+
   // ✅ منطق جدید قیمت‌گذاری (تبدیل به عدد برای جلوگیری از خطا)
   const originalPrice = Number(product.price);
   let displayPrice = originalPrice;
@@ -40,6 +39,7 @@ export default function ProductCard({
   if (currentStore && Number(currentStore.discount_percentage) > 0 && currentStore.discount_expires_at) {
     const isActive = new Date(currentStore.discount_expires_at) > new Date();
     const isCategoryMatch = currentStore.discount_category === 'all' || currentStore.discount_category === product.category;
+
     if (isActive && isCategoryMatch) {
       isGlobalDiscountActive = true;
       hasDiscount = true;
@@ -63,7 +63,7 @@ export default function ProductCard({
       avgRating = (approved.reduce((sum: number, r: any) => sum + r.rating, 0) / approved.length).toFixed(1);
     }
   } else if (product.avgRating) {
-    avgRating = product.avgRating; 
+    avgRating = product.avgRating;
   }
 
   // ✅ هندل کردن کلیک روی سبد خرید با چک کردن موجودی
@@ -84,7 +84,6 @@ export default function ProductCard({
     } else {
       const existingCartString = localStorage.getItem('marketplace_cart')
       let cartData = existingCartString ? JSON.parse(existingCartString) : {}
-
       const storeKey = currentStore?.id || product.store_id;
 
       if (!cartData[storeKey]) {
@@ -92,6 +91,7 @@ export default function ProductCard({
       }
 
       const existingItemIndex = cartData[storeKey].items.findIndex((item: any) => item.id === product.id)
+
       if (existingItemIndex > -1) {
         cartData[storeKey].items[existingItemIndex].quantity += 1
       } else {
@@ -100,7 +100,6 @@ export default function ProductCard({
       }
 
       localStorage.setItem('marketplace_cart', JSON.stringify(cartData))
-      
       setToast('به سبد اضافه شد!')
       setTimeout(() => setToast(''), 2000)
     }
@@ -108,25 +107,25 @@ export default function ProductCard({
 
   return (
     <div className="relative w-full max-w-[250px] mx-auto group">
-      
+
       {toast && (
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] text-white font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-xl shadow-xl whitespace-nowrap animate-fade-in text-xs md:text-sm ${toast.includes('ناموجود') ? 'bg-red-600' : 'bg-gray-900'}`}>
           {toast}
         </div>
       )}
 
-      <Link 
-        href={`/product/${product.id}`} 
+      <Link
+        href={`/product/${product.id}`}
         className="block bg-white rounded-[20px] md:rounded-[28px] p-2 md:p-3 shadow-[0_2px_15px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 border border-gray-100 relative overflow-visible pb-8 md:pb-10"
       >
-        
+
         {/* کادر عکس */}
         <div className="relative aspect-square bg-gray-50 rounded-[14px] md:rounded-[22px] overflow-hidden w-full flex items-center justify-center">
-          
-          {/* ✅ برچسب تخفیف (حالا برای هر دو نوع تخفیف نمایش داده می‌شود) */}
+
+          {/* ✅ برچسب تخفیف: زبانه‌ی چسبیده به لبه‌ی بالای عکس (برای هر دو نوع تخفیف) */}
           {hasDiscount && (
-            <div className="absolute top-1.5 right-1.5 md:top-2.5 md:right-2.5 z-20">
-              <div className="bg-[#2e7d32] text-white px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md md:rounded-lg shadow-sm">
+            <div className="absolute top-0 right-2 md:right-3 z-20">
+              <div className="bg-[#d4003f] text-white px-1.5 pt-0.5 pb-1 md:px-2.5 md:pt-1 md:pb-1.5 rounded-b-lg md:rounded-b-xl shadow-[0_4px_8px_-2px_rgba(212,0,63,0.55)]">
                 <span className="text-[9px] md:text-[11px] font-black">{discountPercent}٪ تخفیف</span>
               </div>
             </div>
@@ -141,8 +140,8 @@ export default function ProductCard({
 
           {/* دکمه علاقه‌مندی */}
           {onToggleFavorite && (
-            <button 
-              onClick={(e) => onToggleFavorite(e, product.id)} 
+            <button
+              onClick={(e) => onToggleFavorite(e, product.id)}
               className={`absolute top-1.5 left-1.5 md:top-2.5 md:left-2.5 z-20 w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full transition-all shadow-sm ${isFavorite ? 'bg-white text-red-500' : 'bg-white/90 text-gray-400 hover:bg-white hover:text-red-400'}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isFavorite ? 'fill-red-500' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,10 +152,10 @@ export default function ProductCard({
 
           {/* عکس محصول */}
           {product.image_url ? (
-            <img 
-              src={product.image_url} 
-              alt={product.title} 
-              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${product.stock === 0 ? 'grayscale opacity-60' : ''}`} 
+            <img
+              src={product.image_url}
+              alt={product.title}
+              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${product.stock === 0 ? 'grayscale opacity-60' : ''}`}
             />
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 md:h-12 md:w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -164,19 +163,20 @@ export default function ProductCard({
             </svg>
           )}
         </div>
-        
+
         {/* بخش اطلاعات */}
         <div className="pt-2 md:pt-3.5 px-0.5 md:px-1">
           <h4 className="font-bold text-gray-800 text-[12px] md:text-[15px] text-right w-full truncate leading-tight">
             {product.title}
           </h4>
+
           <p className="text-[10px] md:text-[11px] text-gray-500 text-right w-full truncate mt-0.5 md:mt-1">
             {currentStore?.name}
           </p>
-          
+
           {/* ردیف پایین: ستاره + دکمه + قیمت */}
           <div className="w-full flex items-center justify-between mt-3 md:mt-5 relative">
-            
+
             {/* ستاره و امتیاز */}
             <div className="flex items-center gap-0.5 md:gap-1 flex-1 justify-start">
               {avgRating && (
@@ -214,20 +214,23 @@ export default function ProductCard({
         </div>
       </Link>
 
-      {/* دکمه سبد خرید شناور */}
-      <button 
-        onClick={handleCartClick}
-        className={`absolute bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 translate-y-1/2 w-11 h-11 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(0,0,0,0.15)] md:shadow-[0_8px_25px_rgba(0,0,0,0.18)] border border-gray-100 transition-all duration-300 z-30 ${
-          product.stock === 0 
-            ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-            : 'bg-white text-gray-800 hover:bg-gray-900 hover:text-white'
-        }`}
-        title={product.stock === 0 ? "ناموجود" : "افزودن به سبد خرید"}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-7 md:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      </button>
+      {/* دکمه سبد خرید شناور (گرد و سه‌بعدی) */}
+      {/* wrapper فقط جای دکمه را تعیین می‌کند تا حالت فشرده شدن با آن تداخل نکند */}
+      <div className="absolute bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 translate-y-1/2 z-30">
+        <button
+          onClick={handleCartClick}
+          className={`w-11 h-11 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all duration-150 ${
+            product.stock === 0
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-[inset_0_2px_0_rgba(255,255,255,0.7),0_3px_0_#b5b5b5]'
+              : 'text-white bg-gradient-to-b from-[#ff3b7a] to-[#d4003f] shadow-[inset_0_2px_0_rgba(255,255,255,0.45),inset_0_-3px_6px_rgba(0,0,0,0.18),0_4px_0_#9c002d,0_10px_16px_-4px_rgba(212,0,63,0.55)] hover:brightness-110 active:translate-y-1 active:shadow-[inset_0_2px_0_rgba(255,255,255,0.35),inset_0_-2px_4px_rgba(0,0,0,0.2),0_1px_0_#9c002d,0_4px_8px_-4px_rgba(212,0,63,0.5)]'
+          }`}
+          title={product.stock === 0 ? "ناموجود" : "افزودن به سبد خرید"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-7 md:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </button>
+      </div>
 
       <style jsx>{`
         @keyframes fadeIn {
