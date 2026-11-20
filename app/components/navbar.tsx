@@ -65,7 +65,7 @@ function NavbarContent() {
                 <button onClick={handleLogout} className="text-sm font-bold text-red-600 bg-red-50 px-4 py-2 rounded-xl hover:bg-red-100">خروج</button>
               </div>
             ) : (
-              <Link href="/login" className="text-sm font-bold text-white bg-red-600 px-6 py-2 rounded-xl hover:bg-red-700">ورود / ثبت‌نام</Link>
+              <Link href="/login" className="text-sm font-bold text-white bg-rose-600 px-6 py-2 rounded-xl hover:bg-rose-700">ورود / ثبت‌نام</Link>
             )}
           </div>
 
