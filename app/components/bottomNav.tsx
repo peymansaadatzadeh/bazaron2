@@ -20,7 +20,7 @@ const DENT_D = 16; // عمق فرورفتگی
 const DENT_HALF_MAX = 28; // نصف عرض فرورفتگی (حداکثر)
 const DOT_R = 6; // شعاع نقطه
 const DOT_REST_Y = 3; // مرکز نقطه‌ی نشسته، نسبت به لبه‌ی بالای ناوبار
-const DOT_COLOR = '#ff3b7a'; // indigo-500 (هم‌رنگ آیکون فعال)
+const DOT_COLOR = '#d4003f'; // قرمز برند (همان قرمز کارت محصول، هم‌رنگ آیکون فعال)
 const PAD_TOP = 64; // فضای بالای ناوبار برای پرش نقطه
 const JUMP_BASE = 30; // ارتفاع پرش
 const JUMP_PER_TAB = 6; // ارتفاع اضافه به‌ازای هر تب فاصله
@@ -358,14 +358,14 @@ function TabBar({ pathname }: { pathname: string }) {
                   <Icon
                     className={`h-[22px] w-[22px] transition-all duration-300 ${
                       isSettled
-                        ? '-translate-y-0.5 scale-110 text-indigo-500'
+                        ? '-translate-y-0.5 scale-110 text-[#d4003f]'
                         : 'text-slate-400'
                     }`}
                     strokeWidth={isSettled ? 2.4 : 2}
                   />
                   <span
                     className={`mt-[3px] whitespace-nowrap text-[10px] font-medium leading-3 transition-colors duration-300 ${
-                      isSettled ? 'text-indigo-500' : 'text-slate-400'
+                      isSettled ? 'text-[#d4003f]' : 'text-slate-400'
                     }`}
                   >
                     {label}
