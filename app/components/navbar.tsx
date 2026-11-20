@@ -47,25 +47,25 @@ function NavbarContent() {
         <div className="flex justify-between h-16 items-center">
           
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-2xl font-black text-indigo-600">بازار شهر</Link>
+            <Link href="/" className="text-2xl font-black text-red-600">بازاران</Link>
             <div className="hidden md:flex gap-4 font-medium text-gray-600">
-              <Link href="/products" className="hover:text-indigo-600">محصولات</Link>
-              <Link href="/stores" className="hover:text-indigo-600">غرفه‌ها</Link>
+              <Link href="/products" className="hover:text-red-600">محصولات</Link>
+              <Link href="/stores" className="hover:text-red-600">غرفه‌ها</Link>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/cart" className="text-gray-600 hover:text-indigo-600 font-bold flex items-center gap-1">
+            <Link href="/cart" className="text-gray-600 hover:text-red-600 font-bold flex items-center gap-1">
               سبد خرید
             </Link>
 
             {user ? (
               <div className="flex items-center gap-3">
-                <Link href="/dashboard" className="text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl">داشبورد</Link>
+                <Link href="/dashboard" className="text-sm font-bold text-red-600 bg-red-50 px-4 py-2 rounded-xl">داشبورد</Link>
                 <button onClick={handleLogout} className="text-sm font-bold text-red-600 bg-red-50 px-4 py-2 rounded-xl hover:bg-red-100">خروج</button>
               </div>
             ) : (
-              <Link href="/login" className="text-sm font-bold text-white bg-indigo-600 px-6 py-2 rounded-xl hover:bg-indigo-700">ورود / ثبت‌نام</Link>
+              <Link href="/login" className="text-sm font-bold text-white bg-red-600 px-6 py-2 rounded-xl hover:bg-red-700">ورود / ثبت‌نام</Link>
             )}
           </div>
 
