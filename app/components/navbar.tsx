@@ -47,7 +47,7 @@ function NavbarContent() {
         <div className="flex justify-between h-16 items-center">
           
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-2xl font-black text-red-600">بازاران</Link>
+            <Link href="/" className="text-2xl font-black text-bg-rose-600">بازاران</Link>
             <div className="hidden md:flex gap-4 font-medium text-gray-600">
               <Link href="/products" className="hover:text-red-600">محصولات</Link>
               <Link href="/stores" className="hover:text-red-600">غرفه‌ها</Link>
