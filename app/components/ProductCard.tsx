@@ -155,7 +155,9 @@ export default function ProductCard({
             <img
               src={product.image_url}
               alt={product.title}
-              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${product.stock === 0 ? 'grayscale opacity-60' : ''}`}
+              loading="lazy"
+              decoding="async"
+              className={`w-full h-full object-contain p-1.5 md:p-2 group-hover:scale-105 transition-transform duration-500 ${product.stock === 0 ? 'grayscale opacity-60' : ''}`}
             />
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 md:h-12 md:w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -204,10 +206,14 @@ export default function ProductCard({
                   </span>
                 </>
               ) : (
-                <span className="font-black text-gray-900 text-[12px] md:text-[15px] leading-none">
-                  {originalPrice.toLocaleString()}
-                  <span className="text-[8px] md:text-[10px] font-medium text-gray-500 mr-0.5 md:mr-1">تومان</span>
-                </span>
+                <>
+                  {/* ✅ جای خالی هم‌اندازه با خط «قیمت قبل از تخفیف» تا ارتفاع همه‌ی کارت‌ها یکی باشد */}
+                  <span aria-hidden="true" className="invisible select-none text-[10px] md:text-[12px] font-medium">0</span>
+                  <span className="font-black text-gray-900 text-[12px] md:text-[15px] leading-none">
+                    {originalPrice.toLocaleString()}
+                    <span className="text-[8px] md:text-[10px] font-medium text-gray-500 mr-0.5 md:mr-1">تومان</span>
+                  </span>
+                </>
               )}
             </div>
           </div>
