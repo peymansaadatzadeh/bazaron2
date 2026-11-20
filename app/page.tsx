@@ -7,7 +7,7 @@ import ProductCard from './components/ProductCard'
 
 const StoreCard = ({ store, avgRating }: { store: any, avgRating: string | null }) => (
   <Link href={`/store/${store.id}`} className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 p-4 sm:p-6 flex flex-col items-center text-center border border-gray-100 w-full h-full">
-    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black text-indigo-600 mb-3 sm:mb-4 border-2 border-white shadow-sm group-hover:scale-110 transition-transform overflow-hidden shrink-0">
+    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-red-50 to-blue-50 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black text-red-600 mb-3 sm:mb-4 border-2 border-white shadow-sm group-hover:scale-110 transition-transform overflow-hidden shrink-0">
       {store.logo_url ? (
         <img src={store.logo_url} alt={store.name} className="w-full h-full object-cover" />
       ) : (
@@ -76,7 +76,7 @@ export default function HomePage() {
     fetchData()
   }, [])
 
-  if (loading) return <div className="flex justify-center items-center min-h-screen bg-gray-50"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div></div>
+  if (loading) return <div className="flex justify-center items-center min-h-screen bg-gray-50"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-600"></div></div>
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 overflow-hidden">
@@ -86,8 +86,8 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-transparent to-transparent"></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col items-center text-center">
-          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight drop-shadow-sm">به بازار <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-indigo-300">متل قو</span> خوش آمدید</h1>
-          <p className="text-lg md:text-xl text-indigo-100 max-w-2xl mb-8 font-medium">جدیدترین محصولات، برترین غرفه‌ها و بهترین تجربه خرید آنلاین در شهر شما.</p>
+          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight drop-shadow-sm">به بازار <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-red-300">متل قو</span> خوش آمدید</h1>
+          <p className="text-lg md:text-xl text-red-100 max-w-2xl mb-8 font-medium">جدیدترین محصولات، برترین غرفه‌ها و بهترین تجربه خرید آنلاین در شهر شما.</p>
         </div>
       </div>
 
@@ -96,7 +96,7 @@ export default function HomePage() {
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">جدیدترین محصولات</h2><p className="text-gray-500 text-sm mt-1">تازه‌ترین‌ها از غرفه‌های مختلف</p></div>
-            <Link href="/products" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
+            <Link href="/products" className="text-red-600 text-sm font-bold hover:text-red-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
           <div className="relative">
             <div className="grid grid-rows-2 md:grid-rows-1 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -116,7 +116,7 @@ export default function HomePage() {
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">پرفروش‌ترین‌ها</h2><p className="text-gray-500 text-sm mt-1">محصولاتی که بیشترین استقبال را داشته‌اند</p></div>
-            <Link href="/products?sort=best" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
+            <Link href="/products?sort=best" className="text-red-600 text-sm font-bold hover:text-red-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
           <div className="relative">
             <div className="grid grid-rows-2 md:grid-rows-1 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
@@ -136,7 +136,7 @@ export default function HomePage() {
         <section>
           <div className="flex justify-between items-end mb-6">
             <div><h2 className="text-2xl font-black text-gray-800">غرفه‌های برتر</h2><p className="text-gray-500 text-sm mt-1">با بالاترین امتیاز از طرف خریداران</p></div>
-            <Link href="/stores?sort=top" className="text-indigo-600 text-sm font-bold hover:text-indigo-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
+            <Link href="/stores?sort=top" className="text-red-600 text-sm font-bold hover:text-red-800 transition-colors flex items-center gap-1">مشاهده همه <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg></Link>
           </div>
           <div className="relative">
             <div className="grid grid-rows-2 md:grid-rows-1 grid-flow-col gap-3 md:gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
