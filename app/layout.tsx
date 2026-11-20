@@ -6,7 +6,7 @@ import Navbar from "./components/navbar";
 import BottomNav from "./components/bottomNav";
 
 export const metadata: Metadata = {
-  title: "بازار شهر",
+  title: "بازاران",
   description: "مارکت‌پلیس چند فروشندگی",
 };
 
