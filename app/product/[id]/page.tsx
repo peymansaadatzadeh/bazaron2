@@ -151,9 +151,16 @@ function ProductContent() {
     setIsSendingMessage(false)
   }
 
-  const finalPrice = isDiscountActive ? product?.price - (product?.price * (store?.discount_percentage / 100)) : product?.price
+  // ✅ اصلاح منطق قیمت نهایی (اولویت تخفیف سراسری، سپس تخفیف اختصاصی)
+  let finalPrice = Number(product?.price) || 0;
+  
+  if (isDiscountActive && store?.discount_percentage) {
+    finalPrice = finalPrice - (finalPrice * (Number(store.discount_percentage) / 100));
+  } else if (product?.discount_price && Number(product.discount_price) > 0 && Number(product.discount_price) < finalPrice) {
+    finalPrice = Number(product.discount_price);
+  }
 
-  // ✅ افزودن مستقیم به سبد خرید (بدون هشدار ۳۰ هزار تومانی)
+  // ✅ افزودن مستقیم به سبد خرید
   const handleAddToCart = () => {
     if (!product || !store) return
     
@@ -291,7 +298,7 @@ function ProductContent() {
                   ) : product.discount_price ? (
                     <>
                       <span className="text-sm text-gray-400 line-through mb-1">{product.price.toLocaleString()}</span>
-                      <span className="font-black text-3xl text-green-600">{product.discount_price.toLocaleString()} <span className="text-sm font-medium text-gray-500">تومان</span></span>
+                      <span className="font-black text-3xl text-green-600">{Number(product.discount_price).toLocaleString()} <span className="text-sm font-medium text-gray-500">تومان</span></span>
                     </>
                   ) : (
                     <span className="font-black text-3xl text-indigo-600">{product.price.toLocaleString()} <span className="text-sm font-medium text-gray-500">تومان</span></span>
